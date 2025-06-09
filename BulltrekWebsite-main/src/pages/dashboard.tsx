@@ -680,7 +680,7 @@ export default function Dashboard() {
         {/* Live Orders Section */}
         <Card className="border bg-white rounded-lg shadow-sm mt-6 mb-6">
           <CardHeader className="bg-[#4A0D0D] text-white rounded-t-lg flex">
-            <CardTitle className="text-lg font-medium">Live Orders</CardTitle>
+            <CardTitle className="text-lg font-medium">Binance Live Orders</CardTitle>
             {/* <RefreshCcw className={`h-4 w-4 ${isLiveOrdersLoading ? 'animate-spin' : ''}`} /> */}
           </CardHeader>
           <CardContent className="p-0">

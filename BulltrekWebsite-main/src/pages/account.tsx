@@ -175,16 +175,6 @@ const [editingItem, setEditingItem] = useState<{
     type: 'direction' | 'quantity' | 'asset' | 'indicator' | 'action' | 'value';
     value: string | number;
   } | null>(null);
-  const [isBinanceConnected, setIsBinanceConnected] = useState(false);
-  // const binanceConnection = useBinanceConnection();
-
-  // Add effect to handle connection status
-  // useEffect(() => {
-  //   if (binanceConnection.isSuccess) {
-  //     setIsBinanceConnected(true);
-  //   }
-  // }, [binanceConnection.isSuccess]);
-
   // Helper function to safely access data
   const getData = <T,>(data: T[] | ApiResponse<T[]> | undefined): T[] => {
     if (!data) return [];
@@ -536,13 +526,6 @@ const [editingItem, setEditingItem] = useState<{
 
   const userData = profileData.data;
 
-  // Update the Binance button click handler
-  // const handleBinanceConnect = () => {
-  //   if (!isBinanceConnected && userData?.id) {
-  //     binanceConnection.mutate(userData.id.toString());
-  //   }
-  // };
-
   const transactions = transactionData?.data || [];
 
   return (
@@ -756,7 +739,8 @@ const [editingItem, setEditingItem] = useState<{
           </div>
           <div className="flex items-center justify-between w-full">
             <div className="font-medium">Having Trouble?</div>
-            <Button className="bg-[#4A1C24] text-white hover:bg-[#3A161C]">
+            <Button className="bg-[#4A1C24] text-white hover:bg-[#3A161C]"
+            onClick={() => navigate('/support')}>
               Support
             </Button>
           </div>
@@ -1419,7 +1403,7 @@ const [editingItem, setEditingItem] = useState<{
 
       {/* Add the Alert Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
