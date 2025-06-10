@@ -25,7 +25,7 @@ const App = () => {
     <div>
       <Router>
         <Routes>
-          <Route path="/" element={<GenericLayout children={<DashboardPage />} />} />F
+          <Route path="/" element={<GenericLayout children={<LoginPage />} />} />F
           <Route path="/login" element={<AuthLayout children={<LoginPage /> } />} />
           <Route path="/register" element={<AuthLayout children={<RegisterPage /> } />} />
           <Route path="/authentication" element={<AuthLayout children={<AuthenticationPage /> } />} />

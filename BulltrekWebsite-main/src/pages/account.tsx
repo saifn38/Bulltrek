@@ -39,6 +39,7 @@ import { useMutation } from "@tanstack/react-query";
 // import type { AxiosInstance } from 'axios';
 import apiClient from "../api/apiClient";
 import { useNavigate } from 'react-router-dom';
+import { PaperTradingTables } from "../components/paperTrading/papertrading";
 
 interface ApiResponse<T> {
   status: string;
@@ -1500,6 +1501,14 @@ const [editingItem, setEditingItem] = useState<{
                     </TableBody>
               </Table>
             </div>
+          </div>
+        </CollapsibleCard>
+      </div>
+
+      <div className="grid grid-cols-5 w-full gap-4">
+        <CollapsibleCard title="Paper Trading" className="col-span-5">
+          <div className="space-y-4">
+            <PaperTradingTables botId={1} /> {/* Pass the correct bot ID */}
           </div>
         </CollapsibleCard>
       </div>

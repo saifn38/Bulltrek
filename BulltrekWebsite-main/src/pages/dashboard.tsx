@@ -38,6 +38,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { CollapsibleCard } from '@/components/collapsible-card'
 // import StrategyBuilder from '@/components/strategy/StrategyBuilder'
+import { BrokeragesTable } from "../components/Brokerages/BrokeragesTable";
 
 
 
@@ -813,6 +814,9 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
+        <div className="mt-6">
+        <BrokeragesTable />
+      </div>
       </main>
     </div>
   )
