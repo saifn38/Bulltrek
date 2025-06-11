@@ -41,7 +41,7 @@ import apiClient from "../api/apiClient";
 import { useNavigate } from 'react-router-dom';
 import { PaperTradingTables } from "../components/paperTrading/papertrading";
 
-interface ApiResponse<T> {
+interface ApiResponse<T> {  
   status: string;
   message: string;
   data: T;
@@ -76,6 +76,19 @@ interface IndicatorAction {
 interface IndicatorValue {
   id: number;
   value: number;
+}
+
+interface Transaction {
+  id: string;
+  symbol: string;
+  orderId: string;
+  price: string;
+  qty: string;
+  quoteQty: string;
+  commission: string;
+  commissionAsset: string;
+  time: number;
+  isBuyer: boolean;
 }
 
 // interface BinanceConnectionResponse {
@@ -527,7 +540,9 @@ const [editingItem, setEditingItem] = useState<{
 
   const userData = profileData.data;
 
-  const transactions = transactionData?.data || [];
+  const transactions = Array.isArray(transactionData?.data) 
+    ? transactionData?.data 
+    : [];
 
   return (
     <div className="px-4 flex flex-col gap-6">
@@ -847,7 +862,7 @@ const [editingItem, setEditingItem] = useState<{
         <CollapsibleCard title="Trading Configuration" className="col-span-5">
           <div className="grid grid-cols-2 gap-6">
             {/* Directions Section */}
-            <div>
+            <div className="border rounded-lg p-4 shadow-sm bg-white">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Trading Directions</h3>
                 <Button
@@ -869,45 +884,47 @@ const [editingItem, setEditingItem] = useState<{
                   <Button variant="outline" onClick={handleCancelNewItem}>Cancel</Button>
                 </div>
               ) : null}
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Direction</TableHead>
-                    <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                  {getData<Direction>(directions).map((direction) => (
-                    <TableRow key={direction.id}>
-                      <TableCell>{direction.id}</TableCell>
-                      <TableCell>{direction.direction}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleUpdateDirection(direction.id, direction.direction)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteDirection(direction.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                    </TableCell>
-                  </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
+              <div className="max-h-[400px] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Direction</TableHead>
+                        <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                      {getData<Direction>(directions).map((direction) => (
+                        <TableRow key={direction.id}>
+                          <TableCell>{direction.id}</TableCell>
+                          <TableCell>{direction.direction}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleUpdateDirection(direction.id, direction.direction)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteDirection(direction.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                        </TableCell>
+                      </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
 
             {/* Quantities Section */}
-            <div>
+            <div className="border rounded-lg p-4 shadow-sm bg-white">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Trading Quantities</h3>
                 <Button
@@ -930,45 +947,47 @@ const [editingItem, setEditingItem] = useState<{
                   <Button variant="outline" onClick={handleCancelNewItem}>Cancel</Button>
                 </div>
               ) : null}
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Quantity</TableHead>
-                    <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                  {getData<Quantity>(quantities).map((quantity) => (
-                    <TableRow key={quantity.id}>
-                      <TableCell>{quantity.id}</TableCell>
-                      <TableCell>{quantity.quantity}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleUpdateQuantity(quantity.id, quantity.quantity)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteQuantity(quantity.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                    </TableCell>
-                  </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
+              <div className="max-h-[400px] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Quantity</TableHead>
+                        <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                      {getData<Quantity>(quantities).map((quantity) => (
+                        <TableRow key={quantity.id}>
+                          <TableCell>{quantity.id}</TableCell>
+                          <TableCell>{quantity.quantity}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleUpdateQuantity(quantity.id, quantity.quantity)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteQuantity(quantity.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                        </TableCell>
+                      </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
 
             {/* Assets Section */}
-            <div>
+            <div className="border rounded-lg p-4 shadow-sm bg-white">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Trading Assets</h3>
                 <Button
@@ -990,45 +1009,47 @@ const [editingItem, setEditingItem] = useState<{
                   <Button variant="outline" onClick={handleCancelNewItem}>Cancel</Button>
                 </div>
               ) : null}
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Symbol</TableHead>
-                    <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                  {getData<Asset>(assets).map((asset) => (
-                    <TableRow key={asset.id}>
-                      <TableCell>{asset.id}</TableCell>
-                      <TableCell>{asset.symbol}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleUpdateAsset(asset.id, asset.symbol)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteAsset(asset.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              <div className="max-h-[400px] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Symbol</TableHead>
+                        <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
+                  </TableHeader>
+                  <TableBody>
+                      {getData<Asset>(assets).map((asset) => (
+                        <TableRow key={asset.id}>
+                          <TableCell>{asset.id}</TableCell>
+                          <TableCell>{asset.symbol}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleUpdateAsset(asset.id, asset.symbol)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteAsset(asset.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
 
             {/* Indicators Section */}
-            <div>
+            <div className="border rounded-lg p-4 shadow-sm bg-white">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Trading Indicators</h3>
                 <Button
@@ -1050,45 +1071,47 @@ const [editingItem, setEditingItem] = useState<{
                   <Button variant="outline" onClick={handleCancelNewItem}>Cancel</Button>
                 </div>
               ) : null}
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Name</TableHead>
-                    <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                  {getData<Indicator>(indicators).map((indicator) => (
-                    <TableRow key={indicator.id}>
-                      <TableCell>{indicator.id}</TableCell>
-                      <TableCell>{indicator.name}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleUpdateIndicator(indicator.id, indicator.name)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteIndicator(indicator.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                    </TableCell>
-                  </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
+              <div className="max-h-[400px] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Name</TableHead>
+                        <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                      {getData<Indicator>(indicators).map((indicator) => (
+                        <TableRow key={indicator.id}>
+                          <TableCell>{indicator.id}</TableCell>
+                          <TableCell>{indicator.name}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleUpdateIndicator(indicator.id, indicator.name)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteIndicator(indicator.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                        </TableCell>
+                      </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
 
             {/* Indicator Actions Section */}
-            <div>
+            <div className="border rounded-lg p-4 shadow-sm bg-white">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Indicator Actions</h3>
                 <Button
@@ -1110,45 +1133,47 @@ const [editingItem, setEditingItem] = useState<{
                   <Button variant="outline" onClick={handleCancelNewItem}>Cancel</Button>
                 </div>
               ) : null}
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Action</TableHead>
-                    <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                  {getData<IndicatorAction>(indicatorActions).map((action) => (
-                    <TableRow key={action.id}>
-                      <TableCell>{action.id}</TableCell>
-                      <TableCell>{action.action}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleUpdateAction(action.id, action.action)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteAction(action.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              <div className="max-h-[400px] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Action</TableHead>
+                        <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
+                  </TableHeader>
+                  <TableBody>
+                      {getData<IndicatorAction>(indicatorActions).map((action) => (
+                        <TableRow key={action.id}>
+                          <TableCell>{action.id}</TableCell>
+                          <TableCell>{action.action}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleUpdateAction(action.id, action.action)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteAction(action.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
 
             {/* Values Section */}
-            <div>
+            <div className="border rounded-lg p-4 shadow-sm bg-white">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Indicator Values</h3>
                 <Button
@@ -1171,41 +1196,43 @@ const [editingItem, setEditingItem] = useState<{
                   <Button variant="outline" onClick={handleCancelNewItem}>Cancel</Button>
                 </div>
               ) : null}
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Value</TableHead>
-                    <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                  {getData<IndicatorValue>(indicatorValues).map((value) => (
-                    <TableRow key={value.id}>
-                      <TableCell>{value.id}</TableCell>
-                      <TableCell>{value.value}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleUpdateValue(value.id, value.value)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteValue(value.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                    </TableCell>
-                  </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
+              <div className="max-h-[400px] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ID</TableHead>
+                      <TableHead>Value</TableHead>
+                        <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                      {getData<IndicatorValue>(indicatorValues).map((value) => (
+                        <TableRow key={value.id}>
+                          <TableCell>{value.id}</TableCell>
+                          <TableCell>{value.value}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleUpdateValue(value.id, value.value)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteValue(value.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                        </TableCell>
+                      </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           </div>
         </CollapsibleCard>
@@ -1465,17 +1492,17 @@ const [editingItem, setEditingItem] = useState<{
                         ) : transactionError ? (
                           <TableRow>
                             <TableCell colSpan={8} className="text-center py-4 text-red-500">
-                              Error loading transactions
+                              Transactio data not found
                             </TableCell>
                           </TableRow>
-                        ) : transactions?.length === 0 ? (
+                        ) : !transactions || transactions.length === 0 ? (
                           <TableRow>
                             <TableCell colSpan={8} className="text-center py-4">
                               No transactions found
                             </TableCell>
                           </TableRow>
                         ) : (
-                          transactions?.map((transaction) => (
+                          transactions.map((transaction: Transaction) => (
                             <TableRow key={transaction.id}>
                               <TableCell>{transaction.symbol}</TableCell>
                               <TableCell>{transaction.orderId}</TableCell>
