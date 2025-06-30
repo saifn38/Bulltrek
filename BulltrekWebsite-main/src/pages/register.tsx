@@ -44,7 +44,7 @@ const RegisterPage = () => {
     }
   }, [showSuccess, navigate])
 
-async function onSubmit(values: RegisterInput) {
+  async function onSubmit(values: RegisterInput) {
     try {
       await register.mutateAsync(values)
       setShowSuccess(true)
@@ -52,22 +52,39 @@ async function onSubmit(values: RegisterInput) {
       // Log the error response for debugging
       console.log("Registration error:", error?.response);
 
+      // Extract message
+      const message = error?.response?.data?.message;
+
       // Check for user already exists error
-      if (
-        error?.response?.status === 409 ||
-        (error?.response?.data?.message &&
-          (
-            error.response.data.message.toLowerCase().includes("already exists") ||
-            error.response.data.message.toLowerCase().includes("duplicate") ||
-            error.response.data.message.toLowerCase().includes("taken") ||
-            error.response.data.message.toLowerCase().includes("user exists") ||
-            error.response.data.message.toLowerCase().includes("email exists")
-          )
-        )
-      ) {
+      const isDuplicate =
+        error?.response?.status === 422 &&
+        message &&
+        typeof message === "object" &&
+        Object.values(message)
+          .flat()
+          .some((msg) =>
+            typeof msg === "string" && (
+              msg.toLowerCase().includes("already taken") ||
+              msg.toLowerCase().includes("already exists") ||
+              msg.toLowerCase().includes("duplicate") ||
+              msg.toLowerCase().includes("taken") ||
+              msg.toLowerCase().includes("user exists") ||
+              msg.toLowerCase().includes("email exists")
+            )
+          );
+
+      if (isDuplicate) {
         toast.error("User already exists. Please login or use a different email/mobile.")
-      } else if (error?.response?.data?.message) {
-        toast.error(error.response.data.message)
+      } else if (typeof message === "string") {
+        toast.error(message)
+      } else if (typeof message === "object") {
+        // Show first error message from object
+        const firstMsg = (Object.values(message).flat()[0]);
+        if (typeof firstMsg === "string") {
+          toast.error(firstMsg);
+        } else {
+          toast.error("Registration failed. Please try again.");
+        }
       } else {
         toast.error("Registration failed. Please try again.")
       }
