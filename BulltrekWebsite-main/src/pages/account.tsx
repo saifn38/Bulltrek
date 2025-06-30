@@ -160,6 +160,7 @@ const [editingItem, setEditingItem] = useState<{
 } | null>(null);
 
   // State declarations
+  const [showApiModal, setShowApiModal] = useState(false);
   const [email, setEmail] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [timeZone, setTimeZone] = useState("GMT, India");
@@ -482,9 +483,28 @@ const handleConfirmDelete = async () => {
             </div>
         </CollapsibleCard>
         {/* Api connect section */}
-        <CollapsibleCard title="API Connect" className='col-span-2'>
-          <ApiConnect userId={userData?.id?.toString()} />
-        </CollapsibleCard>
+        <CollapsibleCard
+  title="API Connect"
+  className="col-span-2"
+  action={
+    <Button
+      className="bg-[#FF8C00] text-white hover:bg-[#FFA500] rounded"
+      onClick={e => {
+        e.stopPropagation(); // Prevents toggling the card when clicking the button
+        setShowApiModal(true);
+      }}
+    >
+      <Plus className="w-4 h-4 mr-2" />
+      Add Brokers/Exchanges
+    </Button>
+  }
+>
+  <ApiConnect
+    userId={userData?.id?.toString()}
+    showModal={showApiModal}
+    setShowModal={setShowApiModal}
+  />
+</CollapsibleCard>
       </div>
 
       <div className="grid grid-cols-5 w-full gap-4">
