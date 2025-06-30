@@ -19,13 +19,15 @@ import TraderOverview from "./pages/trader-overview"
 import { TradersComparison } from "./pages/traders-comparison"
 import TradingReportsPage from "./pages/trading-reports"
 import StrategyBuilderPage from "./pages/strategy-builder"
+import { Toaster } from "react-hot-toast";
 
 const App = () => {
   return (
     <div>
       <Router>
+        <Toaster position="top-center" />
         <Routes>
-          <Route path="/" element={<GenericLayout children={<LoginPage />} />} />F
+          <Route path="/" element={<GenericLayout children={<LoginPage />} />} />
           <Route path="/login" element={<AuthLayout children={<LoginPage /> } />} />
           <Route path="/register" element={<AuthLayout children={<RegisterPage /> } />} />
           <Route path="/authentication" element={<AuthLayout children={<AuthenticationPage /> } />} />

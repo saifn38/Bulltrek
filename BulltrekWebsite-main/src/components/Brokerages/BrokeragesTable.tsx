@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCcw, Trash2 } from "lucide-react";
 import { useBrokerage } from "@/hooks/useBrokerage";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
@@ -18,6 +19,17 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+
+const COLOR_OPTIONS = [
+  { label: 'Binance Yellow', value: '#FCD535' },
+  { label: 'Bulltrek Red', value: '#4A1C24' },
+  { label: 'Kucoin Green', value: '#24AE8F' },
+  { label: 'Bybit Blue', value: '#1D81F5' },
+  { label: 'Orange', value: '#F5841F' },
+  { label: 'Purple', value: '#7B1FA2' },
+  { label: 'Teal', value: '#009688' },
+  { label: 'Deep Blue', value: '#1565C0' },
+];
 
 interface Brokerage {
   id: string;
@@ -34,12 +46,32 @@ interface BrokerageResponse {
   data: Brokerage[];
   code: number;
 }
+// Add this interface with other interfaces
+interface CreateBrokeragePayload {
+  name: string;
+  website: string;
+  registration_link: string;
+  description: string;
+  color_code: string;
+  brokerage_type: string;
+  api_base_url: string;
+}
 
 export function BrokeragesTable() {
-  const { data: brokerages, isLoading, error, getBrokerageById, deleteBrokerage } = useBrokerage();
+  const { data: brokerages, isLoading, error, getBrokerageById, deleteBrokerage, createBrokerage } = useBrokerage();
   const [selectedBrokerage, setSelectedBrokerage] = useState<Brokerage | null>(null);
   const [searchId, setSearchId] = useState<string>("");
   const [brokerageToDelete, setBrokerageToDelete] = useState<string | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [createFormData, setCreateFormData] = useState<CreateBrokeragePayload>({
+    name: '',
+    website: '',
+    registration_link: '',
+    description: '',
+    color_code: '',
+    brokerage_type: '',
+    api_base_url: ''
+  });
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,25 +111,65 @@ export function BrokeragesTable() {
     }
   };
 
+  const handleCreate = async () => {
+    try {
+      const formData = new FormData();
+      Object.entries(createFormData).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+      
+      await createBrokerage(formData);
+      toast.success('Brokerage created successfully');
+      setShowCreateDialog(false);
+      setCreateFormData({
+        name: '',
+        website: '',
+        registration_link: '',
+        description: '',
+        color_code: '',
+        brokerage_type: '',
+        api_base_url: '',
+      });
+    } catch (error) {
+      toast.error('Failed to create brokerage');
+    }
+  };
+
   return (
     <Card className="border bg-white rounded-lg shadow-sm">
       <CardHeader className="bg-[#4A0D0D] text-white rounded-t-lg">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-medium">Brokerages</CardTitle>
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <Input
-              type="text"
-              placeholder="Search by ID"
-              value={searchId}
-              onChange={(e) => setSearchId(e.target.value)}
-              className="w-[200px] bg-white text-black"
-            />
-            <Button type="submit" variant="secondary" size="sm">
-              Search
-            </Button>
-          </form>
-        </div>
-      </CardHeader>
+  <div className="flex items-center justify-between">
+    <CardTitle className="text-lg font-medium">Brokerages</CardTitle>
+    <div className="flex gap-2">
+      <form onSubmit={handleSearch} className="flex gap-2">
+        <Input
+          type="text"
+          placeholder="Search by ID"
+          value={searchId}
+          onChange={(e) => setSearchId(e.target.value)}
+          className="w-[200px] bg-white text-black"
+        />
+        <Button
+          type="submit"
+          variant="secondary"
+          size="sm"
+          className="bg-[#4A1C24] text-white hover:bg-[#3A161C]"
+        >
+          Search
+        </Button>
+      </form>
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        className="bg-[#4A1C24] text-white hover:bg-[#3A161C]"
+        onClick={() => setShowCreateDialog(true)}
+      >
+        Save Strategy
+      </Button>
+    </div>
+  </div>
+</CardHeader>
       <CardContent className="p-0">
         <div className="max-h-[400px] overflow-y-auto">
           <Table>
@@ -232,6 +304,135 @@ export function BrokeragesTable() {
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Add the create dialog here */}
+      <AlertDialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <AlertDialogContent className="bg-white max-w-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Create New Brokerage</AlertDialogTitle>
+          </AlertDialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name</label>
+              <Input
+                value={createFormData.name}
+                onChange={(e) => setCreateFormData(prev => ({...prev, name: e.target.value}))}
+                placeholder="e.g. Binance"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Website</label>
+              <Input
+                value={createFormData.website}
+                onChange={(e) => setCreateFormData(prev => ({...prev, website: e.target.value}))}
+                placeholder="e.g. https://www.binance.com/en"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Registration Link</label>
+              <Input
+                value={createFormData.registration_link}
+                onChange={(e) => setCreateFormData(prev => ({...prev, registration_link: e.target.value}))}
+                placeholder="e.g. https://accounts.binance.com/register"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description</label>
+              <Input
+                value={createFormData.description}
+                onChange={(e) => setCreateFormData(prev => ({...prev, description: e.target.value}))}
+                placeholder="Enter brokerage description"
+              />
+            </div>
+            {/* <div className="space-y-2">
+              <label className="text-sm font-medium">Icon</label>
+              <Input
+                type="file"
+                onChange={(e) => setCreateFormData(prev => ({
+      ...prev, 
+      icon: e.target.files && e.target.files[0] ? e.target.files[0] : null
+    }))}
+                accept=".jpg,.jpeg,.png,.bmp,.tiff,.webp,.svg"
+                className="file:bg-[#4A1C24] file:text-white file:border-0 file:rounded-md file:px-2 file:py-1 file:hover:bg-[#3A161C] file:cursor-pointer"
+              />
+              <p className="text-xs text-muted-foreground">
+    Accepted formats: JPG, JPEG, PNG, BMP, TIFF, WEBP, SVG
+  </p>
+            </div> */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Color Code</label>
+              <div className="flex items-center gap-3">
+                <Select
+                  value={createFormData.color_code}
+                  onValueChange={(value) => setCreateFormData(prev => ({...prev, color_code: value}))}
+                >
+                  <SelectTrigger className="w-full flex items-center gap-2">
+                    {createFormData.color_code && (
+                      <div 
+                        className="w-4 h-4 rounded-full flex-shrink-0" 
+                        style={{ backgroundColor: createFormData.color_code }} 
+                      />
+                    )}
+                    <SelectValue placeholder="Select a color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COLOR_OPTIONS.map((color) => (
+                      <SelectItem 
+                        key={color.value} 
+                        value={color.value}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-4 h-4 rounded-full flex-shrink-0" 
+                            style={{ backgroundColor: color.value }} 
+                          />
+                          <span>{color.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div 
+                  className="w-10 h-10 rounded-md flex-shrink-0"
+                  style={{ 
+                    backgroundColor: createFormData.color_code || '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.05)'
+                  }} 
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+    Select a predefined color for the brokerage theme
+  </p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Brokerage Type</label>
+              <Input
+                value={createFormData.brokerage_type}
+                onChange={(e) => setCreateFormData(prev => ({...prev, brokerage_type: e.target.value}))}
+                placeholder="e.g. crypto"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">API Base URL</label>
+              <Input
+                value={createFormData.api_base_url}
+                onChange={(e) => setCreateFormData(prev => ({...prev, api_base_url: e.target.value}))}
+                placeholder="e.g. https://api.binance.com"
+              />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCreate}
+              className="bg-[#4A1C24] text-white hover:bg-[#3A161C]"
+            >
+              Create
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

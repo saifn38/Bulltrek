@@ -9,14 +9,15 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { PasswordInput } from "@/components/ui/password-input"
-import { useAuth } from "@/hooks/useAuth"; // Now using useAuth instead of useLogin
+import { useAuth } from "@/hooks/useAuth"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Link } from "react-router-dom"
 import { LoginInput, loginSchema } from "../schema"
+import { toast } from "react-hot-toast"
 
 const LoginPage = () => {
-  const { login } = useAuth() // Destructure the login mutation from useAuth
+  const { login } = useAuth()
 
   const loginForm = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -33,14 +34,17 @@ const LoginPage = () => {
         email: values.email,
         password: values.password
       })
-      
-      // Note: The success toast and navigation are now handled in the mutation's onSuccess
-      // We only need to handle the rememberMe functionality here if needed
       if (values.rememberMe) {
         // Implement remember me logic if needed
       }
-    } catch (error) {
-      // Error handling is already done in the mutation hook
+    } catch (error: any) {
+      if (error?.response?.status === 404 || error?.response?.data?.message?.toLowerCase().includes("not found")) {
+        toast.error("Account does not exist. Please check your email or register.")
+      } else if (error?.response?.data?.message) {
+        toast.error(error.response.data.message)
+      } else {
+        toast.error("Login failed. Please try again.")
+      }
       console.error("Login error:", error)
     }
   }

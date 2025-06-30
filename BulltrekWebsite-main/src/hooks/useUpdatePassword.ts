@@ -16,7 +16,7 @@ interface UpdatePasswordResponse {
 export function useUpdatePassword() {
   return useMutation<UpdatePasswordResponse, Error, UpdatePasswordRequest>({
     mutationFn: (data) => 
-      apiClient.post("/api/v1/users/2/update-password", data)
+      apiClient.put("/api/v1/users/2/update-password", data)
         .then(res => res.data),
   });
 } 

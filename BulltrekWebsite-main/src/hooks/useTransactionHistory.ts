@@ -25,7 +25,10 @@ export function useTransactionHistory(symbol: string) {
   return useQuery<TransactionResponse, Error>({
     queryKey: ['transactions', symbol],
     queryFn: async () => {
-      const response = await apiClient.get(`/api/v1/transactions/${symbol}`);
+      // Updated endpoint to match the backend API structure
+      const response = await apiClient.get(`/api/v1/brokerage/binance/transaction/history`, {
+        params: { symbol }
+      });
       return response.data;
     },
     select: (data) => ({
@@ -33,5 +36,9 @@ export function useTransactionHistory(symbol: string) {
       data: Array.isArray(data.data) ? data.data : []
     }),
     enabled: !!symbol,
+    retry: 1, // Only retry once if failed
+    // onError: (error) => {
+    //   console.error('Transaction fetch error:', error);
+    // }
   });
 }

@@ -1,6 +1,7 @@
 import { ShareCard } from '@/components/dashboard/share-card'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+
 import { ApiConnect } from "../components/dashboard/ApiConnect";
 import {
   Card,
@@ -315,14 +316,6 @@ export default function Dashboard() {
     }).filter((item): item is NonNullable<typeof item> => item !== null);
   })();
 
-  // For API Connect section
-  // const apiData = [
-  //   {
-  //     name: getBrokerageDetails.data?.brokerage_name || 'No Brokerage',
-  //     type: 'REST API',
-  //     status: getBrokerageDetails.data ? 'Connected' : 'Connect'
-  //   }
-  // ];
 
   // Placeholder data for other sections
   const scanners: ScannerData[] = [
@@ -618,11 +611,9 @@ export default function Dashboard() {
           </div>
 
           <div className="space-y-6">
-            {/* API Connect */}
-          <CollapsibleCard title="API Connect" className='col-span-2'>
-                <ApiConnect userId={userData?.id?.toString()} />
-              </CollapsibleCard>
-
+                    <CollapsibleCard title="API Connect" className='col-span-2'>
+                      <ApiConnect userId={userData?.id?.toString()} />
+                    </CollapsibleCard>
             {/* Support Tickets */}
             <Collapsible
               open={openSections.support}

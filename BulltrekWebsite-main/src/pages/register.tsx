@@ -10,12 +10,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { PasswordInput } from "@/components/ui/password-input"
 import { PhoneInput } from "@/components/ui/phone-number-input"
-import { useAuth } from "@/hooks/useAuth"; // Import our custom hook
+import { useAuth } from "@/hooks/useAuth"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
 import { RegisterInput, registerSchema } from "../schema"
+import { toast } from "react-hot-toast"
 
 const RegisterPage = () => {
   const navigate = useNavigate()
@@ -43,12 +44,33 @@ const RegisterPage = () => {
     }
   }, [showSuccess, navigate])
 
-  async function onSubmit(values: RegisterInput) {
+async function onSubmit(values: RegisterInput) {
     try {
       await register.mutateAsync(values)
       setShowSuccess(true)
-    } catch (error) {
-      console.error("Registration error:", error)
+    } catch (error: any) {
+      // Log the error response for debugging
+      console.log("Registration error:", error?.response);
+
+      // Check for user already exists error
+      if (
+        error?.response?.status === 409 ||
+        (error?.response?.data?.message &&
+          (
+            error.response.data.message.toLowerCase().includes("already exists") ||
+            error.response.data.message.toLowerCase().includes("duplicate") ||
+            error.response.data.message.toLowerCase().includes("taken") ||
+            error.response.data.message.toLowerCase().includes("user exists") ||
+            error.response.data.message.toLowerCase().includes("email exists")
+          )
+        )
+      ) {
+        toast.error("User already exists. Please login or use a different email/mobile.")
+      } else if (error?.response?.data?.message) {
+        toast.error(error.response.data.message)
+      } else {
+        toast.error("Registration failed. Please try again.")
+      }
     }
   }
 
@@ -63,7 +85,7 @@ const RegisterPage = () => {
   }
 
   return (
-    <div className="flex flex-col gap-8 items-center h-full w-full">
+    <div className="flex flex-col gap-8 items-center h-full w-full justify-center">
       <h1 className="font-medium text-[32px] text-center pt-16">Register</h1>
       <div className="flex justify-center w-full"> 
         <Form {...registerForm}>

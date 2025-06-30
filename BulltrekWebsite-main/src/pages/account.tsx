@@ -13,6 +13,7 @@ import { useUpdatePassword } from '@/hooks/useUpdatePassword'
 import { useBrokerageDetails } from '@/hooks/useBrokerageDetails'
 import { useBotManagement } from '@/hooks/useBotManagement'
 import { Clock, Download, Edit, Plus, Trash2, RefreshCcw } from 'lucide-react'
+import { useResendInvite } from '@/hooks/sendinvite';
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
@@ -24,7 +25,8 @@ import { PlatformDetails } from '../components/account/platformDetails';
 import { useIndicatorActions } from '@/hooks/useIndicatorAction'
 import { useIndicatorValues } from '@/hooks/useValue'
 import { useTransactionHistory } from '@/hooks/useTransactionHistory';
-import { ApiConnect } from "../components/dashboard/ApiConnect";
+import { ApiConnect } from "@/components/account/ApiConnect";
+import { Eye, EyeOff } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,9 +37,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useMutation } from "@tanstack/react-query";
-// import type { AxiosInstance } from 'axios';
-import apiClient from "../api/apiClient";
 import { useNavigate } from 'react-router-dom';
 import { PaperTradingTables } from "../components/paperTrading/papertrading";
 
@@ -144,6 +143,9 @@ export default function AccountPage() {
   const { data: brokerageData, isLoading: isBrokerageLoading, error: brokerageError } = useBrokerageDetails();
   const { bots, isLoading: isBotsLoading, error: botsError, createBot, updateBot, deleteBot } = useBotManagement();
   const updatePassword = useUpdatePassword();
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { directions, isLoading: isDirectionsLoading, createDirection, updateDirection, deleteDirection } = useDirections();
   const { quantities, isLoading: isQuantitiesLoading, createQuantity, updateQuantity, deleteQuantity } = useQuantities();
   const { assets, isLoading: isAssetsLoading, createAsset, updateAsset, deleteAsset } = useAssets();
@@ -242,24 +244,26 @@ const [editingItem, setEditingItem] = useState<{
     }
   };
 
-  const handleDeleteDirection = async (id: number) => {
-    setItemToDelete({ type: 'direction', id });
-    setDeleteDialogOpen(true);
-  };
+  const handleDeleteDirection = (id: number) => {
+  setItemToDelete({
+    type: 'direction',
+    id
+  });
+  setDeleteDialogOpen(true);
+};
 
-  const handleConfirmDelete = async () => {
-    if (!itemToDelete) return;
-
-    try {
-      switch (itemToDelete.type) {
-        case 'direction':
-          await deleteDirection.mutateAsync(itemToDelete.id);
-          toast.success('Direction deleted successfully');
-          break;
-        case 'quantity':
-          await deleteQuantity.mutateAsync(itemToDelete.id);
-          toast.success('Quantity deleted successfully');
-          break;
+const handleConfirmDelete = async () => {
+  if (!itemToDelete) return;
+  try {
+    switch (itemToDelete.type) {
+      case 'direction':
+        await deleteDirection.mutateAsync(itemToDelete.id);
+        toast.success('Direction deleted successfully');
+        break;
+      case 'quantity':
+        await deleteQuantity.mutateAsync(itemToDelete.id);
+        toast.success('Quantity deleted successfully');
+        break;
         case 'asset':
           await deleteAsset.mutateAsync(itemToDelete.id);
           toast.success('Asset deleted successfully');
@@ -278,12 +282,12 @@ const [editingItem, setEditingItem] = useState<{
           break;
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || `Failed to delete ${itemToDelete.type}`);
-    } finally {
-      setDeleteDialogOpen(false);
-      setItemToDelete(null);
-    }
-  };
+    toast.error(error.response?.data?.message || `Failed to delete ${itemToDelete.type}`);
+  } finally {
+    setDeleteDialogOpen(false);
+    setItemToDelete(null);
+  }
+};
 
   // Add missing handler functions
   const handleDownloadInvoice = (invoiceId: number) => {
@@ -313,6 +317,7 @@ const [editingItem, setEditingItem] = useState<{
       });
     }
   };
+  const resendInvite = useResendInvite();
 
   const handleUpdateBot = async (id: number, data: any) => {
     try {
@@ -326,194 +331,6 @@ const [editingItem, setEditingItem] = useState<{
       });
     }
   };
-
-  const handleDeleteBot = async (id: number) => {
-    try {
-      await deleteBot.mutateAsync(id);
-      toast.success("Bot deleted successfully");
-    } catch (error: any) {
-      toast.error("Failed to delete bot", {
-        description: error.response?.data?.message || "Please try again",
-      });
-    }
-  };
-
-  const handleUpdateDirection = async (id: number, direction: string) => {
-    try {
-      await updateDirection.mutateAsync({ id, direction });
-      toast.success('Direction updated successfully');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to update direction');
-    }
-  };
-
-  const handleUpdateQuantity = async (id: number, quantity: number) => {
-    try {
-      await updateQuantity.mutateAsync({ id, quantity });
-      toast.success('Quantity updated successfully');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to update quantity');
-    }
-  };
-
-  const handleDeleteQuantity = async (id: number) => {
-    setItemToDelete({ type: 'quantity', id });
-    setDeleteDialogOpen(true);
-  };
-
-  const handleUpdateAsset = async (id: number, symbol: string) => {
-    try {
-      await updateAsset.mutateAsync({ id, symbol });
-      toast.success('Asset updated successfully');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to update asset');
-    }
-  };
-
-  const handleDeleteAsset = async (id: number) => {
-    setItemToDelete({ type: 'asset', id });
-    setDeleteDialogOpen(true);
-  };
-
-  const handleUpdateIndicator = async (id: number, name: string) => {
-    try {
-      await updateIndicator.mutateAsync({ id, name });
-      toast.success('Indicator updated successfully');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to update indicator');
-    }
-  };
-
-  const handleDeleteIndicator = async (id: number) => {
-    setItemToDelete({ type: 'indicator', id });
-    setDeleteDialogOpen(true);
-  };
-
-  const handleUpdateAction = async (id: number, action: string) => {
-    try {
-      await updateAction.mutateAsync({ id, action });
-      toast.success('Indicator action updated successfully');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to update indicator action');
-    }
-  };
-
-  const handleDeleteAction = async (id: number) => {
-    setItemToDelete({ type: 'action', id });
-    setDeleteDialogOpen(true);
-  };
-
-  const handleUpdateValue = async (id: number, value: number) => {
-    try {
-      await updateValue.mutateAsync({ id, value });
-      toast.success('Value updated successfully');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to update value');
-    }
-  };
-
-  const handleDeleteValue = async (id: number) => {
-    setItemToDelete({ type: 'value', id });
-    setDeleteDialogOpen(true);
-  };
-
-  // Add create handlers
-  const handleCreateDirection = async (direction: string) => {
-    try {
-      await createDirection.mutateAsync(direction);
-      toast.success('Direction created successfully');
-      setNewItem(null);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create direction');
-    }
-  };
-
-  const handleCreateQuantity = async (quantity: number) => {
-    try {
-      await createQuantity.mutateAsync(quantity);
-      toast.success('Quantity created successfully');
-      setNewItem(null);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create quantity');
-    }
-  };
-
-  const handleCreateAsset = async (symbol: string) => {
-    try {
-      await createAsset.mutateAsync(symbol);
-      toast.success('Asset created successfully');
-      setNewItem(null);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create asset');
-    }
-  };
-
-  const handleCreateIndicator = async (name: string) => {
-    try {
-      await createIndicator.mutateAsync(name);
-      toast.success('Indicator created successfully');
-      setNewItem(null);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create indicator');
-    }
-  };
-
-  const handleCreateAction = async (action: string) => {
-    try {
-      await createAction.mutateAsync(action);
-      toast.success('Indicator action created successfully');
-      setNewItem(null);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create indicator action');
-    }
-  };
-
-  const handleCreateValue = async (value: number) => {
-    try {
-      await createValue.mutateAsync(value);
-      toast.success('Value created successfully');
-      setNewItem(null);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create value');
-    }
-  };
-
-  const handleAddNewItem = (type: 'direction' | 'quantity' | 'asset' | 'indicator' | 'action' | 'value') => {
-    setNewItem({ type, value: type === 'quantity' || type === 'value' ? 0 : '' });
-  };
-
-  const handleSaveNewItem = () => {
-    if (!newItem) return;
-
-    switch (newItem.type) {
-      case 'direction':
-        handleCreateDirection(newItem.value as string);
-        break;
-      case 'quantity':
-        handleCreateQuantity(newItem.value as number);
-        break;
-      case 'asset':
-        handleCreateAsset(newItem.value as string);
-        break;
-      case 'indicator':
-        handleCreateIndicator(newItem.value as string);
-        break;
-      case 'action':
-        handleCreateAction(newItem.value as string);
-        break;
-      case 'value':
-        handleCreateValue(newItem.value as number);
-        break;
-    }
-  };
-
-  const handleCancelNewItem = () => {
-    setNewItem(null);
-  };
-
-  // Extract bot list safely
-  const botList = bots?.data || [];
-
   // Show loading state if any of the data is loading
   if (isLoading) {
     return (
@@ -548,87 +365,119 @@ const [editingItem, setEditingItem] = useState<{
     <div className="px-4 flex flex-col gap-6">
       <div className="grid grid-cols-5 w-full gap-4">
         <CollapsibleCard title="Account Details" className='col-span-3'>
-            <div className="flex gap-6">
-                <div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-1">
-                    <div className="text-sm text-muted-foreground">Name</div>
-                    <div className="font-medium">{userData.name}</div>
-                    </div>
-                    <div className="space-y-1">
-                    <div className="text-sm text-muted-foreground">Account ID</div>
-                    <div className="font-medium">{userData.id}</div>
-                    </div>
-                    <div className="space-y-1">
-                    <div className="text-sm text-muted-foreground">Email</div>
-                    <div className="flex items-center gap-2 max-w-[200px]">
-                        {isEditing ? (
-                        <Input 
-                            value={email} 
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="h-8"
-                        />
-                        ) : (
-                        <div className="font-medium truncate">{userData.email}</div>
-                        )}
-                        <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={handleEmailEdit}
-                        className="h-8 w-8 flex-shrink-0"
-                        >
-                        <Edit className="h-4 w-4" />
-                        </Button>
-                    </div>
-                    </div>
-                </div>
+            <div className="flex flex-col gap-6">
+                <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                        {/* Existing account details content */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-1">
+                            <div className="text-sm text-muted-foreground">Name</div>
+                            <div className="font-medium">{userData.name}</div>
+                            </div>
+                            <div className="space-y-1">
+                            <div className="text-sm text-muted-foreground">Account ID</div>
+                            <div className="font-medium">{userData.id}</div>
+                            </div>
+                            <div className="space-y-1">
+                            <div className="text-sm text-muted-foreground">Email</div>
+                            <div className="flex items-center gap-2 max-w-[200px]">
+                                {isEditing ? (
+                                <Input 
+                                    value={email} 
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="h-8"
+                                />
+                                ) : (
+                                <div className="font-medium truncate">{userData.email}</div>
+                                )}
+                                <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={handleEmailEdit}
+                                className="h-8 w-8 flex-shrink-0"
+                                >
+                                <Edit className="h-4 w-4" />
+                                </Button>
+                            </div>
+                            </div>
+                        </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-1">
-                    <div className="text-sm text-muted-foreground">Plan Name</div>
-                    <div className="font-medium">Premium</div>
-                    </div>
-                    <div className="space-y-1">
-                    <div className="text-sm text-muted-foreground">Duration</div>
-                    <div className="font-medium">24 Months</div>
-                    </div>
-                    <div className="space-y-1">
-                    <div className="text-sm text-muted-foreground">KYC</div>
-                    <Badge variant="success">Verified</Badge>
-                    </div>
-                </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-1">
+                            <div className="text-sm text-muted-foreground">Plan Name</div>
+                            <div className="font-medium">Premium</div>
+                            </div>
+                            <div className="space-y-1">
+                            <div className="text-sm text-muted-foreground">Duration</div>
+                            <div className="font-medium">24 Months</div>
+                            </div>
+                            <div className="space-y-1">
+                            <div className="text-sm text-muted-foreground">KYC</div>
+                            <Badge variant="success">Verified</Badge>
+                            </div>
+                        </div>
 
-                <div className="space-y-1">
-                    <div className="text-sm text-muted-foreground">Time Zone</div>
-                    <div className="flex items-center gap-2 max-w-[200px]">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <Select value={timeZone} onValueChange={setTimeZone}>
-                        <SelectTrigger>
-                        <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                        <SelectItem value="GMT, India">GMT, India</SelectItem>
-                        <SelectItem value="PST, USA">PST, USA</SelectItem>
-                        <SelectItem value="EST, USA">EST, USA</SelectItem>
-                        </SelectContent>
-                    </Select>
+                        <div className="space-y-1">
+                            <div className="text-sm text-muted-foreground">Time Zone</div>
+                            <div className="flex items-center gap-2 max-w-[200px]">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <Select value={timeZone} onValueChange={setTimeZone}>
+                                <SelectTrigger>
+                                <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                <SelectItem value="GMT, India">GMT, India</SelectItem>
+                                <SelectItem value="PST, USA">PST, USA</SelectItem>
+                                <SelectItem value="EST, USA">EST, USA</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                </div>
 
-                <div className="flex flex-col flex-wrap gap-3">
+                   <div className="flex flex-col flex-wrap gap-3">
+                    <Button 
+                      className="bg-[#4A1C24] text-white hover:bg-[#3A161C] w-fit flex items-center gap-2"
+                      onClick={() => {
+                        toast.success("Details updated successfully");
+                      }}
+                    >
+                      <RefreshCcw className="h-4 w-4" />
+                      Update Details
+                    </Button>
+
                     <Button 
                       className="bg-[#4A1C24] text-white hover:bg-[#3A161C] w-fit"
                       onClick={() => setShowPasswordModal(true)}
                     >
                       Change Password
                     </Button>
-                    <Button className="bg-[#4A1C24] text-white hover:bg-[#3A161C] w-fit" onClick={() => navigate('/pricing')}>
+
+                    <Button 
+                      className="bg-[#4A1C24] text-white hover:bg-[#3A161C] w-fit" 
+                      onClick={() => navigate('/pricing')}
+                    >
                       Upgrade/Renew Plan
                     </Button>
-                    <Button className="bg-orange-500 text-white hover:bg-orange-600 w-fit" onClick={() => navigate('/wallet')}>
-                      Wallet
-                    </Button>
+
+                    {/* Group Wallet and Send Invite horizontally */}
+                    <div className="flex gap-3">
+                      <Button 
+                        className="bg-orange-500 text-white hover:bg-orange-600 w-fit" 
+                        onClick={() => navigate('/wallet')}
+                      >
+                        Wallet
+                      </Button>
+
+                      <Button
+                        className="bg-[#4A1C24] text-white hover:bg-[#3A161C] w-fit"
+                        onClick={() => resendInvite.mutate(userData.id)}
+                        disabled={resendInvite.isPending}
+                      >
+                        {resendInvite.isPending ? "Sending..." : "Send Invite"}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
             </div>
         </CollapsibleCard>
@@ -732,8 +581,7 @@ const [editingItem, setEditingItem] = useState<{
                   <TableCell>Himesh Raj</TableCell>
                   <TableCell>123456791</TableCell>
                   <TableCell>
-                    <Badge variant={i === 
-3 ? "warning" : "success"}>
+                    <Badge variant={i === 3 ? "warning" : "success"}>
                       {i === 3 ? "Pending" : "Verified"}
                     </Badge>
                   </TableCell>
@@ -771,524 +619,97 @@ const [editingItem, setEditingItem] = useState<{
 
       </div>
 
-      <div className="grid grid-cols-5 w-full gap-4">
-        <CollapsibleCard title="Bot Management" className='col-span-5'>
-          <div className="space-y-4">
-            <div className="flex justify-end">
-              <Button 
-                className="bg-[#4A1C24] text-white hover:bg-[#3A161C]"
-                onClick={() => setShowCreateBotModal(true)}
-              >
-                <Plus className="h-4 w-4 mr-2" /> Create New Bot
-              </Button>
-            </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>S.No</TableHead>
-                  <TableHead>Bot Name</TableHead>
-                  <TableHead>Mode</TableHead>
-                  <TableHead>Execution Type</TableHead>
-                  <TableHead>Created At</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isBotsLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4">
-                      Loading bots...
-                    </TableCell>
-                  </TableRow>
-                ) : botsError ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4 text-red-500">
-                      Error loading bots
-                    </TableCell>
-                  </TableRow>
-                ) : botList.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4">
-                      No bots found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  botList.map((bot: any, index) => (
-                    <TableRow key={bot.id} className="hover:bg-muted/50">
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>{bot.name}</TableCell>
-                      <TableCell>
-                        <Badge variant={bot.mode === 'live' ? 'destructive' : 'default'}>
-                          {bot.mode}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{bot.execution_type}</TableCell>
-                      <TableCell>{format(new Date(bot.created_at), 'dd MMM yyyy')}</TableCell>
-                      <TableCell>
-                        <Badge variant="success">Active</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setSelectedBot(bot);
-                              setShowEditBotModal(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteBot(bot.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CollapsibleCard>
-      </div>
 
-      <div className="grid grid-cols-5 w-full gap-4">
-        <CollapsibleCard title="Trading Configuration" className="col-span-5">
-          <div className="grid grid-cols-2 gap-6">
-            {/* Directions Section */}
-            <div className="border rounded-lg p-4 shadow-sm bg-white">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Trading Directions</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAddNewItem('direction')}
-                >
-                  <Plus className="h-4 w-4 mr-2" /> Add Direction
-                </Button>
-              </div>
-              {newItem?.type === 'direction' ? (
-                <div className="flex gap-2 mb-4">
-                  <Input
-                    value={newItem.value as string}
-                    onChange={(e) => setNewItem({ ...newItem, value: e.target.value })}
-                    placeholder="Enter direction"
-                  />
-                  <Button onClick={handleSaveNewItem}>Save</Button>
-                  <Button variant="outline" onClick={handleCancelNewItem}>Cancel</Button>
-                </div>
-              ) : null}
-              <div className="max-h-[400px] overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Direction</TableHead>
-                        <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                      {getData<Direction>(directions).map((direction) => (
-                        <TableRow key={direction.id}>
-                          <TableCell>{direction.id}</TableCell>
-                          <TableCell>{direction.direction}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleUpdateDirection(direction.id, direction.direction)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDeleteDirection(direction.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                        </TableCell>
-                      </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
 
-            {/* Quantities Section */}
-            <div className="border rounded-lg p-4 shadow-sm bg-white">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Trading Quantities</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAddNewItem('quantity')}
-                >
-                  <Plus className="h-4 w-4 mr-2" /> Add Quantity
-                </Button>
-              </div>
-              {newItem?.type === 'quantity' ? (
-                <div className="flex gap-2 mb-4">
-                  <Input
-                    type="number"
-                    value={newItem.value as number}
-                    onChange={(e) => setNewItem({ ...newItem, value: parseFloat(e.target.value) })}
-                    placeholder="Enter quantity"
-                  />
-                  <Button onClick={handleSaveNewItem}>Save</Button>
-                  <Button variant="outline" onClick={handleCancelNewItem}>Cancel</Button>
-                </div>
-              ) : null}
-              <div className="max-h-[400px] overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Quantity</TableHead>
-                        <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                      {getData<Quantity>(quantities).map((quantity) => (
-                        <TableRow key={quantity.id}>
-                          <TableCell>{quantity.id}</TableCell>
-                          <TableCell>{quantity.quantity}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleUpdateQuantity(quantity.id, quantity.quantity)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDeleteQuantity(quantity.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                        </TableCell>
-                      </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-
-            {/* Assets Section */}
-            <div className="border rounded-lg p-4 shadow-sm bg-white">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Trading Assets</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAddNewItem('asset')}
-                >
-                  <Plus className="h-4 w-4 mr-2" /> Add Asset
-                </Button>
-              </div>
-              {newItem?.type === 'asset' ? (
-                <div className="flex gap-2 mb-4">
-                  <Input
-                    value={newItem.value as string}
-                    onChange={(e) => setNewItem({ ...newItem, value: e.target.value })}
-                    placeholder="Enter asset symbol"
-                  />
-                  <Button onClick={handleSaveNewItem}>Save</Button>
-                  <Button variant="outline" onClick={handleCancelNewItem}>Cancel</Button>
-                </div>
-              ) : null}
-              <div className="max-h-[400px] overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Symbol</TableHead>
-                        <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                      {getData<Asset>(assets).map((asset) => (
-                        <TableRow key={asset.id}>
-                          <TableCell>{asset.id}</TableCell>
-                          <TableCell>{asset.symbol}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleUpdateAsset(asset.id, asset.symbol)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDeleteAsset(asset.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-
-            {/* Indicators Section */}
-            <div className="border rounded-lg p-4 shadow-sm bg-white">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Trading Indicators</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAddNewItem('indicator')}
-                >
-                  <Plus className="h-4 w-4 mr-2" /> Add Indicator
-                </Button>
-              </div>
-              {newItem?.type === 'indicator' ? (
-                <div className="flex gap-2 mb-4">
-                  <Input
-                    value={newItem.value as string}
-                    onChange={(e) => setNewItem({ ...newItem, value: e.target.value })}
-                    placeholder="Enter indicator name"
-                  />
-                  <Button onClick={handleSaveNewItem}>Save</Button>
-                  <Button variant="outline" onClick={handleCancelNewItem}>Cancel</Button>
-                </div>
-              ) : null}
-              <div className="max-h-[400px] overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Name</TableHead>
-                        <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                      {getData<Indicator>(indicators).map((indicator) => (
-                        <TableRow key={indicator.id}>
-                          <TableCell>{indicator.id}</TableCell>
-                          <TableCell>{indicator.name}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleUpdateIndicator(indicator.id, indicator.name)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDeleteIndicator(indicator.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                        </TableCell>
-                      </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-
-            {/* Indicator Actions Section */}
-            <div className="border rounded-lg p-4 shadow-sm bg-white">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Indicator Actions</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAddNewItem('action')}
-                >
-                  <Plus className="h-4 w-4 mr-2" /> Add Action
-                </Button>
-              </div>
-              {newItem?.type === 'action' ? (
-                <div className="flex gap-2 mb-4">
-                  <Input
-                    value={newItem.value as string}
-                    onChange={(e) => setNewItem({ ...newItem, value: e.target.value })}
-                    placeholder="Enter action"
-                  />
-                  <Button onClick={handleSaveNewItem}>Save</Button>
-                  <Button variant="outline" onClick={handleCancelNewItem}>Cancel</Button>
-                </div>
-              ) : null}
-              <div className="max-h-[400px] overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Action</TableHead>
-                        <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                      {getData<IndicatorAction>(indicatorActions).map((action) => (
-                        <TableRow key={action.id}>
-                          <TableCell>{action.id}</TableCell>
-                          <TableCell>{action.action}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleUpdateAction(action.id, action.action)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDeleteAction(action.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-
-            {/* Values Section */}
-            <div className="border rounded-lg p-4 shadow-sm bg-white">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Indicator Values</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAddNewItem('value')}
-                >
-                  <Plus className="h-4 w-4 mr-2" /> Add Value
-                </Button>
-              </div>
-              {newItem?.type === 'value' ? (
-                <div className="flex gap-2 mb-4">
-                  <Input
-                    type="number"
-                    value={newItem.value as number}
-                    onChange={(e) => setNewItem({ ...newItem, value: parseFloat(e.target.value) })}
-                    placeholder="Enter value"
-                  />
-                  <Button onClick={handleSaveNewItem}>Save</Button>
-                  <Button variant="outline" onClick={handleCancelNewItem}>Cancel</Button>
-                </div>
-              ) : null}
-              <div className="max-h-[400px] overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Value</TableHead>
-                        <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                      {getData<IndicatorValue>(indicatorValues).map((value) => (
-                        <TableRow key={value.id}>
-                          <TableCell>{value.id}</TableCell>
-                          <TableCell>{value.value}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleUpdateValue(value.id, value.value)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDeleteValue(value.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                        </TableCell>
-                      </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          </div>
-        </CollapsibleCard>
-      </div>
-
-      {showPasswordModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-[400px]">
-            <h2 className="text-xl font-semibold mb-4">Change Password</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm text-muted-foreground">Current Password</label>
-                <Input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-muted-foreground">New Password</label>
-                <Input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-muted-foreground">Confirm New Password</label>
-                <Input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div className="flex justify-end gap-2 mt-6">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowPasswordModal(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="bg-[#4A1C24] text-white hover:bg-[#3A161C]"
-                  onClick={handlePasswordUpdate}
-                  disabled={updatePassword.isPending}
-                >
-                  {updatePassword.isPending ? "Updating..." : "Update Password"}
-                </Button>
-              </div>
-            </div>
+{showPasswordModal && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-lg w-[400px]">
+      <h2 className="text-xl font-semibold mb-4">Change Password</h2>
+      <div className="space-y-4">
+        <div>
+          <label className="text-sm text-muted-foreground">Current Password</label>
+          <div className="relative">
+            <Input
+              type={showCurrentPassword ? "text" : "password"}
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="mt-1 pr-10"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute right-0 top-1 h-8"
+              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+            >
+              {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
           </div>
         </div>
-      )}
+        <div>
+          <label className="text-sm text-muted-foreground">New Password</label>
+          <div className="relative">
+            <Input
+              type={showNewPassword ? "text" : "password"}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="mt-1 pr-10"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute right-0 top-1 h-8"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+            >
+              {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+        <div>
+          <label className="text-sm text-muted-foreground">Confirm New Password</label>
+          <div className="relative">
+            <Input
+              type={showConfirmPassword ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="mt-1 pr-10"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute right-0 top-1 h-8"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 mt-6">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setShowPasswordModal(false);
+              setShowCurrentPassword(false);
+              setShowNewPassword(false);
+              setShowConfirmPassword(false);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            className="bg-[#4A1C24] text-white hover:bg-[#3A161C]"
+            onClick={handlePasswordUpdate}
+            disabled={updatePassword.isPending}
+          >
+            {updatePassword.isPending ? "Updating..." : "Update Password"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}  
 
       {/* Create Bot Modal */}
       {showCreateBotModal && (
