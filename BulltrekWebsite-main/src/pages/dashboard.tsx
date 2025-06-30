@@ -560,7 +560,7 @@ export default function Dashboard() {
                 <CollapsibleContent>
                   <CardContent>
                     <div className="space-y-6">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="pt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
                         <div>
                           <div className="text-sm text-gray-500">Plan Name</div>
                           <div className="font-medium">{plan.name}</div>
