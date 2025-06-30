@@ -10,13 +10,15 @@ interface CollapsibleCardProps {
   children: React.ReactNode
   className?: string
   defaultExpanded?: boolean
+  action?: React.ReactNode // <-- Added
 }
 
 export function CollapsibleCard({ 
   title, 
   children, 
   className,
-  defaultExpanded = true 
+  defaultExpanded = true,
+  action // <-- Added
 }: CollapsibleCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
 
@@ -26,12 +28,17 @@ export function CollapsibleCard({
         className="bg-[#4A1C24] text-white cursor-pointer flex flex-row items-center justify-between p-4 rounded-t-lg"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-        {isExpanded ? (
-          <ChevronUp className="h-5 w-5" />
-        ) : (
-          <ChevronDown className="h-5 w-5" />
-        )}
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+        </div>
+        <div className="flex items-center gap-2">
+          {action}
+          {isExpanded ? (
+            <ChevronUp className="h-5 w-5" />
+          ) : (
+            <ChevronDown className="h-5 w-5" />
+          )}
+        </div>
       </CardHeader>
       <div className={cn(
         "transition-all duration-200 ease-in-out",

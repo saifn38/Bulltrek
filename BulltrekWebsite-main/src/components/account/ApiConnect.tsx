@@ -1,126 +1,155 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { X } from "lucide-react";
+import { brokerageService } from "@/api/brokerage";
+import { toast } from "sonner";
 
 interface ApiConnectProps {
   userId?: string;
+  showModal: boolean;
+  setShowModal: (show: boolean) => void;
+}
+
+interface BrokerageConnection {
+  id: number;
+  brokerage_name: string;
+  brokerage_api_key: string;
+  brokerage_api_secret: string;
+  brokerage_id: number;
+  created_at: string;
+  updated_at: string;
+  brokerage: {
+    id: number;
+    name: string;
+    website: string | null;
+    registration_link: string | null;
+    description: string | null;
+    icon: string | null;
+    color_code: string | null;
+    brokerage_type: string | null;
+    api_base_url: string | null;
+    created_at: string;
+    updated_at: string;
+  };
 }
 
 const PLATFORMS = [
   { value: "binance", label: "Binance", requiresPassPhrase: false },
-  { value: "coinbase", label: "Coinbase", requiresPassPhrase: true },
-  { value: "kucoin", label: "KuCoin", requiresPassPhrase: true },
-  { value: "bybit", label: "Bybit", requiresPassPhrase: false },
+  { value: "zerodha", label: "Zerodha", requiresPassPhrase: false },
 ];
 
-export const ApiConnect: React.FC<ApiConnectProps> = ({ userId }) => {
-  const [showModal, setShowModal] = useState(false);
+export const ApiConnect: React.FC<ApiConnectProps> = ({
+  userId,
+  showModal,
+  setShowModal,
+}) => {
   const [platform, setPlatform] = useState("");
   const [apiName, setApiName] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [apiSecret, setApiSecret] = useState("");
   const [passPhrase, setPassPhrase] = useState("");
-  const [apis, setApis] = useState([
-    // Example/mock data
-    {
-      id: 1,
-      platform: "Binance",
-      apiName: "Main Key",
-      apiKey: "****abcd",
-      apiSecret: "****1234",
-      passPhrase: "",
-    },
-  ]);
+  const [apis, setApis] = useState<BrokerageConnection[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const selectedPlatform = PLATFORMS.find((p) => p.value === platform);
 
-  const handleAddApi = () => {
-    setApis([
-      ...apis,
-      {
-        id: Date.now(),
-        platform: selectedPlatform?.label || platform,
-        apiName,
-        apiKey: "****" + apiKey.slice(-4),
-        apiSecret: "****" + apiSecret.slice(-4),
-        passPhrase: selectedPlatform?.requiresPassPhrase ? passPhrase : "",
-      },
-    ]);
-    setShowModal(false);
-    setPlatform("");
-    setApiName("");
-    setApiKey("");
-    setApiSecret("");
-    setPassPhrase("");
-  };
+  useEffect(() => {
+    async function fetchBrokerages() {
+      setLoading(true);
+      try {
+        const res = await brokerageService.getBrokerageDetails();
+        setApis(res.data.data || []);
+      } catch (err) {
+        setApis([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchBrokerages();
+  }, [userId]);
 
-  const handleDelete = (id: number) => {
-    setApis(apis.filter((api) => api.id !== id));
+  const handleAddApi = async () => {
+    try {
+      await brokerageService.linkBrokerage({
+        brokerage_name: platform as "zerodha" | "binance",
+        brokerage_api_key: apiKey,
+        brokerage_api_secret: apiSecret,
+      });
+      toast.success("Brokerage linked successfully!");
+      setShowModal(false);
+      setPlatform("");
+      setApiName("");
+      setApiKey("");
+      setApiSecret("");
+      setPassPhrase("");
+      setLoading(true);
+      const res = await brokerageService.getBrokerageDetails();
+      setApis(res.data.data || []);
+      setLoading(false);
+    } catch (err: any) {
+      toast.error("Failed to link brokerage.");
+    }
   };
 
   return (
     <div>
-      <div className="flex flex-col items-center justify-center min-h-[180px]">
-        {apis.length === 0 ? (
-          <Button
-            variant="ghost"
-            className="flex flex-col items-center gap-2 text-[#4A1C24] border-dashed border-2 border-[#4A1C24] rounded-lg py-8 px-6"
-            onClick={() => setShowModal(true)}
-          >
-            <Plus className="w-8 h-8" />
-            <span className="font-medium">Add Brokers/Exchanges</span>
-          </Button>
-        ) : (
-          <>
-            <div className="flex justify-end w-full mb-2">
-              <Button
-                className="bg-[#4A1C24] text-white hover:bg-[#3A161C] rounded"
-                onClick={() => setShowModal(true)}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Brokers/Exchanges
-              </Button>
-            </div>
-            <div className="overflow-x-auto rounded-lg border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Platform</TableHead>
-                    <TableHead>API Name</TableHead>
-                    <TableHead>API Key</TableHead>
-                    <TableHead>API Secret</TableHead>
-                    <TableHead>Pass Phrase</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {apis.map((api) => (
-                    <TableRow key={api.id}>
-                      <TableCell>{api.platform}</TableCell>
-                      <TableCell>{api.apiName}</TableCell>
-                      <TableCell>{api.apiKey}</TableCell>
-                      <TableCell>{api.apiSecret}</TableCell>
-                      <TableCell>{api.passPhrase || "-"}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(api.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </>
-        )}
-      </div>
+      <div className="overflow-x-auto w-full">
+  <Table className="min-w-full text-sm">
+    <TableHeader>
+      <TableRow>
+        <TableHead className="px-2 py-1">Platform</TableHead>
+        <TableHead className="px-2 py-1">API Key</TableHead>
+        <TableHead className="px-2 py-1">API Secret</TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {loading ? (
+        <TableRow>
+          <TableCell colSpan={3} className="text-center py-6">
+            Loading...
+          </TableCell>
+        </TableRow>
+      ) : apis.length === 0 ? (
+        <TableRow>
+          <TableCell colSpan={3} className="text-center py-6">
+            No brokerages connected yet.
+          </TableCell>
+        </TableRow>
+      ) : (
+        apis.map((api) => (
+          <TableRow key={api.id}>
+            <TableCell className="px-2 py-1">
+              {api.brokerage?.name || api.brokerage_name}
+            </TableCell>
+            <TableCell className="px-2 py-1">
+              {"****" + api.brokerage_api_key.slice(-4)}
+            </TableCell>
+            <TableCell className="px-2 py-1">
+              {"****" + api.brokerage_api_secret.slice(-4)}
+            </TableCell>
+          </TableRow>
+        ))
+      )}
+    </TableBody>
+  </Table>
+</div>
+
 
       {/* Modal */}
       {showModal && (
@@ -152,7 +181,7 @@ export const ApiConnect: React.FC<ApiConnectProps> = ({ userId }) => {
               <div>
                 <label className="block text-sm mb-1">API Name</label>
                 <Input
-                  placeholder="Enter API Key"
+                  placeholder="Enter API Name"
                   value={apiName}
                   onChange={(e) => setApiName(e.target.value)}
                 />
@@ -160,14 +189,16 @@ export const ApiConnect: React.FC<ApiConnectProps> = ({ userId }) => {
               <div>
                 <label className="block text-sm mb-1">API Key</label>
                 <Input
-                  placeholder="Enter API Secret"
+                  placeholder="Enter API Key"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                 />
               </div>
               <div>
                 <label className="block text-sm mb-1">
-                  {selectedPlatform?.requiresPassPhrase ? "API Secret" : "API Secret"}
+                  {selectedPlatform?.requiresPassPhrase
+                    ? "API Secret"
+                    : "API Secret"}
                 </label>
                 <Input
                   placeholder={
@@ -183,7 +214,7 @@ export const ApiConnect: React.FC<ApiConnectProps> = ({ userId }) => {
                 <div className="col-span-2">
                   <label className="block text-sm mb-1">Pass Phrase</label>
                   <Input
-                    placeholder="Enter API Secret"
+                    placeholder="Enter Pass Phrase"
                     value={passPhrase}
                     onChange={(e) => setPassPhrase(e.target.value)}
                   />
@@ -193,7 +224,13 @@ export const ApiConnect: React.FC<ApiConnectProps> = ({ userId }) => {
             <Button
               className="w-full bg-[#4A1C24] text-white hover:bg-[#3A161C] rounded"
               onClick={handleAddApi}
-              disabled={!platform || !apiName || !apiKey || !apiSecret || (selectedPlatform?.requiresPassPhrase && !passPhrase)}
+              disabled={
+                !platform ||
+                !apiName ||
+                !apiKey ||
+                !apiSecret ||
+                (selectedPlatform?.requiresPassPhrase && !passPhrase)
+              }
             >
               Submit
             </Button>

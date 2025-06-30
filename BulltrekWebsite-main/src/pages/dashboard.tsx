@@ -2,7 +2,7 @@ import { ShareCard } from '@/components/dashboard/share-card'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
-import { ApiConnect } from "../components/dashboard/ApiConnect";
+import { ApiConnect } from "../components/account/ApiConnect";
 import {
   Card,
   CardContent,
@@ -30,7 +30,7 @@ import { useIndicatorActions } from '@/hooks/useIndicatorAction'
 import { useQuantities } from '@/hooks/useQuantity'
 import { useTradeMappings } from '@/hooks/useTradeMapping'
 import { useIndicatorValues } from '@/hooks/useValue'
-import { ChevronDown, MessageSquare, MoreVertical, RefreshCcw, Clock } from 'lucide-react'
+import { ChevronDown, MessageSquare, MoreVertical, RefreshCcw, Clock, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import apiClient from "@/api/apiClient";
@@ -161,7 +161,8 @@ function useLiveOrders() {
   });
 }
 
-export default function Dashboard() {
+export default function Dashboard({userId}: { userId?: string }) {
+  const [showModal, setShowModal] = useState(false);
   const [openSections, setOpenSections] = useState({
     strategy: true,
     scanner: true,
@@ -593,9 +594,24 @@ export default function Dashboard() {
           </div>
 
           <div className="space-y-6">
-                    <CollapsibleCard title="API Connect" className='col-span-2'>
-                      <ApiConnect userId={userData?.id?.toString()} />
-                    </CollapsibleCard>
+                    <CollapsibleCard
+      title="API Connect"
+      className="col-span-2"
+      action={
+        <Button
+          className="bg-[#FF8C00] text-white hover:bg-[#FFA500] rounded"
+          onClick={e => {
+            e.stopPropagation(); // Prevents toggling the card when clicking the button
+            setShowModal(true);
+          }}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Brokers/Exchanges
+        </Button>
+      }
+    >
+      <ApiConnect userId={userId} showModal={showModal} setShowModal={setShowModal} />
+    </CollapsibleCard>
             {/* Support Tickets */}
             <Collapsible
               open={openSections.support}
