@@ -215,7 +215,9 @@ export default function StrategyBuilder({ userId, onClose }: { userId?: number; 
           </div>
         )}
 
-        {/* Submit Button */}
+
+
+        {/* Submit Button  for the end of the page*/}
         {entryStrategy.length === STAGES.length && exitStrategy.length === STAGES.length && (
           <Button className="bg-[#4A0D0D] text-white hover:bg-[#7B2323] px-8 mt-4" onClick={handleSubmit} disabled={loading}>
             {loading ? "Submitting..." : "Create Strategy"}
