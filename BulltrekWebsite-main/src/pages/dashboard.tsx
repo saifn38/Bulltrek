@@ -145,15 +145,6 @@ function useBinanceConnection({ onSuccess, onError }: {
   });
 }
 
-function useBrokerageDetails() {
-  return useQuery({
-    queryKey: ["brokerageDetails"],
-    queryFn: async () => {
-      const response = await apiClient.get("/api/v1/users/1/brokerages/details/fetch");
-      return response.data;
-    },
-  });
-}
 
 function useLiveOrders() {
   return useQuery({
@@ -209,17 +200,8 @@ export default function Dashboard() {
   const { quantities, isLoading: isQuantitiesLoading, error: quantitiesError } = useQuantities();
   const { directions, isLoading: isDirectionsLoading, error: directionsError } = useDirections();
   const { getBrokerageDetails } = useBrokerageManagement();
-  const { data: brokerageDetails, isLoading: isBrokerageLoading } = useBrokerageDetails();
   const { data: liveOrders, isLoading: isLiveOrdersLoading } = useLiveOrders();
 
-  // Helper function to check if a brokerage is connected
-  const isBrokerageConnected = (brokerageName: string) => {
-    if (!brokerageDetails?.data) return false;
-    return brokerageDetails.data.some(
-      (brokerage: BrokerageDetail) => 
-        brokerage.brokerage_name.toLowerCase() === brokerageName.toLowerCase()
-    );
-  };
 
   // Combined loading state
   const isLoading = isMappingsLoading || isIndicatorsLoading || isActionsLoading || 

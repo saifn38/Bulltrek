@@ -1,158 +1,226 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import apiClient from "@/api/apiClient";
 
-export default function StrategyBuilder({ userId }: { userId?: number }) {
-  const [conditions, setConditions] = useState<any[]>([]);
-  const [indicator, setIndicator] = useState("");
-  const [action, setAction] = useState("");
-  const [value, setValue] = useState("");
-  const [name, setName] = useState("");
-  const [direction, setDirection] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [asset, setAsset] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [operators, setOperators] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
+const STAGES = [
+  "indicator",         // 1. Indicator
+  "indicatorAction",   // 2. Indicator Action
+  "value",             // 3. Value
+  "direction",         // 4. Direction
+  "quantity",          // 5. Quantity
+  "asset",             // 6. Asset
+] as const;
+type Stage = typeof STAGES[number];
 
-  const addCondition = () => {
-    if (indicator && action && value) {
-      setConditions([...conditions, { indicator, action, value }]);
-      setIndicator("");
-      setAction("");
-      setValue("");
+const API_ENDPOINTS: Record<Stage, string> = {
+  indicator: "/api/v1/indicators",
+  indicatorAction: "/api/v1/indicator-actions",
+  value: "/api/v1/values",
+  direction: "/api/v1/directions",
+  quantity: "/api/v1/quantities",
+  asset: "/api/v1/assets",
+};
+
+function getOptionLabel(stage: Stage, option: any) {
+  switch (stage) {
+    case "direction": return option.direction;
+    case "quantity": return option.quantity;
+    case "asset": return option.symbol;
+    case "indicator": return option.name;
+    case "indicatorAction": return option.action;
+    case "value": return option.value;
+    default: return option.name || "";
+  }
+}
+
+export default function StrategyBuilder({ userId, onClose }: { userId?: number; onClose?: () => void }) {
+  const [step, setStep] = useState<"entry" | "exit">("entry");
+  const [stageIdx, setStageIdx] = useState(0);
+  const [options, setOptions] = useState<any[]>([]);
+  const [selected, setSelected] = useState<any[]>([]);
+  const [entryStrategy, setEntryStrategy] = useState<any[]>([]);
+  const [exitStrategy, setExitStrategy] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch options for the current stage
+  useEffect(() => {
+    const fetchOptions = async () => {
+      setLoading(true);
+      try {
+        const endpoint = API_ENDPOINTS[STAGES[stageIdx]];
+        const res = await apiClient.get(endpoint);
+        setOptions(res.data?.data || []);
+      } catch {
+        setOptions([]);
+      }
+      setLoading(false);
+    };
+    fetchOptions();
+  }, [stageIdx, step]);
+
+  // Handle selection at each stage
+  const handleSelect = (option: any) => {
+    setSelected(prev => [...prev, option]);
+    if (stageIdx < STAGES.length - 1) {
+      setStageIdx(stageIdx + 1);
+    } else {
+      // End of stage: save strategy and reset for next (entry/exit)
+      if (step === "entry") {
+        setEntryStrategy(selected.concat(option));
+        setSelected([]);
+        setStageIdx(0);
+        setStep("exit");
+      } else {
+        setExitStrategy(selected.concat(option));
+        setSelected([]);
+        setStageIdx(0);
+      }
     }
   };
 
-  const handleCreateStrategy = async () => {
+  // Remove a selected token
+  const handleRemove = (idx: number) => {
+    setSelected(selected.slice(0, idx));
+    setStageIdx(idx);
+  };
+
+  // Build readable sentence
+  const buildSentence = (arr: any[]) =>
+    arr.map((opt, idx) => (
+      <span
+        key={idx}
+        className="inline-flex items-center bg-[#F3E8E8] text-[#4A0D0D] rounded px-3 py-1 mr-2 mb-2 text-base font-medium"
+        style={{ borderBottom: "2px solid #4A0D0D" }}
+      >
+        {getOptionLabel(STAGES[idx], opt)}
+      </span>
+    ));
+
+  // Build current sentence (with remove buttons)
+  const buildCurrentSentence = () =>
+    selected.map((opt, idx) => (
+      <span
+        key={idx}
+        className="inline-flex items-center bg-[#F3E8E8] text-[#4A0D0D] rounded px-3 py-1 mr-2 mb-2 text-base font-medium"
+        style={{ borderBottom: "2px solid #7B2323" }}
+      >
+        {getOptionLabel(STAGES[idx], opt)}
+        <button
+          className="ml-2 text-xs text-[#7B2323] hover:text-red-400"
+          onClick={() => handleRemove(idx)}
+          tabIndex={-1}
+        >
+          ×
+        </button>
+      </span>
+    ));
+
+  // Submit both strategies
+  const handleSubmit = async () => {
     setLoading(true);
-    setSuccess("");
-    setError("");
     try {
       const token = localStorage.getItem("AUTH_TOKEN");
-      if (!token) throw new Error("No auth token found");
-      const payload = {
-        user_id: userId || 1, // fallback for demo
-        name,
-        conditions,
-        operators,
-        direction,
-        quantity: parseFloat(quantity),
-        asset,
-        start_time: startTime,
-        end_time: endTime,
-      };
-      await apiClient.post("/api/v1/strategies", payload, {
+      await apiClient.post("/api/v1/strategies", {
+        user_id: userId || 1,
+        entry_strategy: entryStrategy.map((opt, idx) => ({
+          stage: STAGES[idx],
+          value: getOptionLabel(STAGES[idx], opt),
+        })),
+        exit_strategy: exitStrategy.map((opt, idx) => ({
+          stage: STAGES[idx],
+          value: getOptionLabel(STAGES[idx], opt),
+        })),
+      }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSuccess("Strategy created successfully!");
-      setConditions([]);
-      setName("");
-      setDirection("");
-      setQuantity("");
-      setAsset("");
-      setStartTime("");
-      setEndTime("");
-      setOperators([]);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err.message || "Failed to create strategy");
-    } finally {
-      setLoading(false);
+      if (onClose) onClose();
+    } catch (err) {
+      alert("Failed to create strategy");
     }
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f5f6fa] p-6">
-      <div className="w-full max-w-5xl bg-white rounded-xl shadow p-8">
-        <div className="mb-6">
-          <div className="mb-2 font-semibold">Strategy Name</div>
-          <Input value={name} onChange={e => setName(e.target.value)} placeholder="Enter strategy name" />
-        </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="relative w-full max-w-2xl bg-white rounded-xl shadow-lg p-8">
+        {onClose && (
+          <button
+            className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-[#4A0D0D]"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            &times;
+          </button>
+        )}
+
         {/* Stepper */}
         <div className="flex items-center justify-center mb-8">
           <div className="flex flex-col items-center flex-1">
-            <span className="font-semibold text-lg text-[#4A1C24]">Entry Strategy</span>
-            <div className="w-4 h-4 bg-orange-400 rounded-full mt-2" />
+            <span className={`font-semibold text-lg ${step === "entry" ? "text-[#4A0D0D]" : "text-gray-400"}`}>Entry Strategy</span>
+            <div className={`w-4 h-4 ${step === "entry" ? "bg-[#4A0D0D]" : "bg-maroon-100"} rounded-full mt-2`} />
           </div>
-          <div className="flex-1 h-1 bg-orange-100 mx-2 relative">
-            <div className="absolute left-0 top-0 h-1 bg-orange-300" style={{width: '50%'}} />
+          <div className="flex-1 h-1 bg-maroon-100 mx-2 relative">
+            <div className="absolute left-0 top-0 h-1 bg-[#7B2323]" style={{ width: step === "entry" ? "50%" : "100%" }} />
           </div>
           <div className="flex flex-col items-center flex-1">
-            <span className="font-semibold text-lg text-gray-400">Exit Strategy</span>
-            <div className="w-4 h-4 bg-orange-100 rounded-full mt-2" />
+            <span className={`font-semibold text-lg ${step === "exit" ? "text-[#4A0D0D]" : "text-gray-400"}`}>Exit Strategy</span>
+            <div className={`w-4 h-4 ${step === "exit" ? "bg-[#4A0D0D]" : "bg-maroon-100"} rounded-full mt-2`} />
           </div>
         </div>
 
-        {/* Condition List */}
-        {conditions.length > 0 && (
-          <div className="mb-4">
-            {conditions.map((cond, idx) => (
-              <div key={idx} className="bg-orange-50 border border-orange-200 rounded px-4 py-2 mb-2 text-sm">
-                <span className="font-semibold text-orange-700">Condition {idx+1}:</span> {cond.indicator} {cond.action} {cond.value}
-              </div>
-            ))}
+        {/* Input-like sentence builder */}
+        <div className="mb-6">
+          <div className="text-lg text-[#4A0D0D] mb-2">
+            {step === "entry" ? "Build your Entry Strategy" : "Build your Exit Strategy"}
+          </div>
+          <div className="min-h-[48px] flex flex-wrap items-center border-b border-[#4A0D0D] pb-2 bg-white px-2">
+            {buildCurrentSentence()}
+            {stageIdx < STAGES.length && (
+              <span className="text-gray-400 italic">
+                {STAGES[stageIdx].charAt(0).toUpperCase() + STAGES[stageIdx].slice(1)}...
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Option Buttons */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {loading ? (
+            <span className="text-[#4A0D0D]">Loading...</span>
+          ) : options.length === 0 ? (
+            <span className="text-[#4A0D0D]">No options available.</span>
+          ) : (
+            options.map(option => (
+              <button
+                key={option.id}
+                type="button"
+                className="px-4 py-2 rounded border bg-[#F3E8E8] text-[#4A0D0D] border-[#7B2323] hover:bg-[#4A0D0D] hover:text-white transition"
+                onClick={() => handleSelect(option)}
+              >
+                {getOptionLabel(STAGES[stageIdx], option)}
+              </button>
+            ))
+          )}
+        </div>
+
+        {/* Show completed strategies */}
+        {entryStrategy.length === STAGES.length && (
+          <div className="mb-2 text-green-700">
+            <b>Entry Strategy:</b> {buildSentence(entryStrategy)}
+          </div>
+        )}
+        {exitStrategy.length === STAGES.length && (
+          <div className="mb-2 text-blue-700">
+            <b>Exit Strategy:</b> {buildSentence(exitStrategy)}
           </div>
         )}
 
-        {/* Condition Inputs */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-          <div>
-            <div className="mb-2 font-semibold">Indicator</div>
-            <Input value={indicator} onChange={e => setIndicator(e.target.value)} placeholder="e.g. MACD" />
-          </div>
-          <div>
-            <div className="mb-2 font-semibold">Action</div>
-            <Input value={action} onChange={e => setAction(e.target.value)} placeholder="e.g. Buy" />
-          </div>
-          <div>
-            <div className="mb-2 font-semibold">Value</div>
-            <Input value={value} onChange={e => setValue(e.target.value)} placeholder="e.g. 70" />
-          </div>
-          <Button onClick={addCondition} className="bg-[#4A1C24] text-white hover:bg-[#3A161C]">Add Condition</Button>
-        </div>
-
-        {/* Operators */}
-        <div className="mb-6">
-          <div className="mb-2 font-semibold">Operators (between conditions)</div>
-          <Input value={operators.join(",")} onChange={e => setOperators(e.target.value.split(",").map(s => s.trim()))} placeholder="e.g. OR, AND" />
-        </div>
-
-        {/* Direction, Quantity, Asset, Time */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div>
-            <div className="mb-2 font-semibold">Direction</div>
-            <Input value={direction} onChange={e => setDirection(e.target.value)} placeholder="e.g. Buy or Sell" />
-          </div>
-          <div>
-            <div className="mb-2 font-semibold">Quantity</div>
-            <Input value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="e.g. 0.7" type="number" />
-          </div>
-          <div>
-            <div className="mb-2 font-semibold">Asset</div>
-            <Input value={asset} onChange={e => setAsset(e.target.value)} placeholder="e.g. BTC/USD" />
-          </div>
-          <div>
-            <div className="mb-2 font-semibold">Start Time</div>
-            <Input value={startTime} onChange={e => setStartTime(e.target.value)} placeholder="e.g. 09:18" type="time" />
-          </div>
-          <div>
-            <div className="mb-2 font-semibold">End Time</div>
-            <Input value={endTime} onChange={e => setEndTime(e.target.value)} placeholder="e.g. 15:35" type="time" />
-          </div>
-        </div>
-
-        {/* Submit Button and Status */}
-        <div className="flex gap-4 items-center">
-          <Button className="bg-[#4A1C24] text-white hover:bg-[#3A161C]" onClick={handleCreateStrategy} disabled={loading}>
-            {loading ? "Creating..." : "Create Strategy"}
+        {/* Submit Button */}
+        {entryStrategy.length === STAGES.length && exitStrategy.length === STAGES.length && (
+          <Button className="bg-[#4A0D0D] text-white hover:bg-[#7B2323] px-8 mt-4" onClick={handleSubmit} disabled={loading}>
+            {loading ? "Submitting..." : "Create Strategy"}
           </Button>
-          {success && <span className="text-green-600 font-semibold">{success}</span>}
-          {error && <span className="text-red-600 font-semibold">{error}</span>}
-        </div>
+        )}
       </div>
     </div>
   );
