@@ -1,19 +1,14 @@
-import { ShareCard } from '@/components/dashboard/share-card'
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { ShareCard } from "@/components/dashboard/share-card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 import { ApiConnect } from "../components/account/ApiConnect";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from "@/components/ui/collapsible";
 import {
   Table,
   TableBody,
@@ -21,39 +16,44 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { useAssets } from '@/hooks/useAsset'
-import { useBrokerageManagement } from '@/hooks/useBrokerages'
-import { useDirections } from '@/hooks/useDirection'
-import { useIndicators } from '@/hooks/useIndicator'
-import { useIndicatorActions } from '@/hooks/useIndicatorAction'
-import { useQuantities } from '@/hooks/useQuantity'
-import { useTradeMappings } from '@/hooks/useTradeMapping'
-import { useIndicatorValues } from '@/hooks/useValue'
-import { ChevronDown, MessageSquare, MoreVertical, RefreshCcw, Clock, Plus } from 'lucide-react'
-import { useState } from 'react'
-import { useUserProfile } from '@/hooks/useUserProfile'
+} from "@/components/ui/table";
+import { useAssets } from "@/hooks/useAsset";
+import { useBrokerageManagement } from "@/hooks/useBrokerages";
+import { useDirections } from "@/hooks/useDirection";
+import { useIndicators } from "@/hooks/useIndicator";
+import { useIndicatorActions } from "@/hooks/useIndicatorAction";
+import { useQuantities } from "@/hooks/useQuantity";
+import { useTradeMappings } from "@/hooks/useTradeMapping";
+import { useIndicatorValues } from "@/hooks/useValue";
+import {
+  ChevronDown,
+  MessageSquare,
+  MoreVertical,
+  RefreshCcw,
+  Clock,
+  Plus,
+} from "lucide-react";
+import { useState } from "react";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import apiClient from "@/api/apiClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { CollapsibleCard } from '@/components/collapsible-card'
+import { CollapsibleCard } from "@/components/collapsible-card";
 // import StrategyBuilder from '@/components/strategy/StrategyBuilder'
 import { BrokeragesTable } from "../components/Brokerages/BrokeragesTable";
-
-
 
 interface ScannerData {
   name: string;
   dateTime: string;
   pairs: string;
-  status: 'Active' | 'Closed';
+  status: "Active" | "Closed";
 }
 
 interface SupportTicketData {
   number: string;
   createdOn: string;
-  status: 'Resolved' | 'In Progress';
+  status: "Resolved" | "In Progress";
 }
 
 interface PlanData {
@@ -120,17 +120,26 @@ function useStrategies() {
   });
 }
 
-function useBinanceConnection({ onSuccess, onError }: { 
-  onSuccess?: (data: any) => void; 
+function useBinanceConnection({
+  onSuccess,
+  onError,
+}: {
+  onSuccess?: (data: any) => void;
   onError?: (error: any) => void;
 } = {}) {
   return useMutation({
     mutationFn: async (userId: string) => {
-      const response = await apiClient.put(`/api/v1/users/${userId}/brokerages/details/link`, {
-        brokerage_name: "binance",
-        brokerage_api_key: import.meta.env.VITE_BINANCE_API_KEY || "jcramxjcrjejdr80",
-        brokerage_api_secret: import.meta.env.VITE_BINANCE_API_SECRET || "x5bkuvcvbaqgh3yke4qzl1teuhxqna66"
-      });
+      const response = await apiClient.put(
+        `/api/v1/users/${userId}/brokerages/details/link`,
+        {
+          brokerage_name: "binance",
+          brokerage_api_key:
+            import.meta.env.VITE_BINANCE_API_KEY || "jcramxjcrjejdr80",
+          brokerage_api_secret:
+            import.meta.env.VITE_BINANCE_API_SECRET ||
+            "x5bkuvcvbaqgh3yke4qzl1teuhxqna66",
+        }
+      );
       return response.data;
     },
     onSuccess: (data) => {
@@ -141,35 +150,37 @@ function useBinanceConnection({ onSuccess, onError }: {
       onError?.(error);
       console.error("Binance connection error:", error);
       toast.error(error.response?.data?.message || "Failed to connect Binance");
-    }
+    },
   });
 }
-
 
 function useLiveOrders() {
   return useQuery({
     queryKey: ["liveOrders"],
     queryFn: async () => {
-      const response = await apiClient.get("/api/v1/brokerage/binance/orders/live", {
-        params: {
-          symbol: "BTCUSDT"
+      const response = await apiClient.get(
+        "/api/v1/brokerage/binance/orders/live",
+        {
+          params: {
+            symbol: "BTCUSDT",
+          },
         }
-      });
+      );
       return response.data;
     },
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 }
 
-export default function Dashboard({userId}: { userId?: string }) {
+export default function Dashboard({ userId }: { userId?: string }) {
   const [showModal, setShowModal] = useState(false);
   const [openSections, setOpenSections] = useState({
     strategy: true,
     scanner: true,
     api: true,
     support: true,
-    plan: true
-  })
+    plan: true,
+  });
   const [showStrategyBuilder, setShowStrategyBuilder] = useState(false);
   const [isBinanceConnected, setIsBinanceConnected] = useState(false);
 
@@ -184,36 +195,80 @@ export default function Dashboard({userId}: { userId?: string }) {
       setIsBinanceConnected(false);
       console.error("Binance connection error:", error);
       toast.error(error.response?.data?.message || "Failed to connect Binance");
-    }
+    },
   });
-   const handleBinanceConnect = () => {
+  const handleBinanceConnect = () => {
     if (!isBinanceConnected && userData?.id) {
       binanceConnection.mutate(userData.id.toString());
     }
   };
 
   // API Data Hooks
-  const { mappings: tradeMappings, deleteMapping, isLoading: isMappingsLoading, error: mappingsError } = useTradeMappings();
-  const { indicators, isLoading: isIndicatorsLoading, error: indicatorsError } = useIndicators();
-  const { actions: indicatorActions, isLoading: isActionsLoading, error: actionsError } = useIndicatorActions();
-  const { assets, isLoading: isAssetsLoading, error: assetsError } = useAssets();
-  const { values: indicatorValues, isLoading: isValuesLoading, error: valuesError } = useIndicatorValues();
-  const { quantities, isLoading: isQuantitiesLoading, error: quantitiesError } = useQuantities();
-  const { directions, isLoading: isDirectionsLoading, error: directionsError } = useDirections();
+  const {
+    mappings: tradeMappings,
+    deleteMapping,
+    isLoading: isMappingsLoading,
+    error: mappingsError,
+  } = useTradeMappings();
+  const {
+    indicators,
+    isLoading: isIndicatorsLoading,
+    error: indicatorsError,
+  } = useIndicators();
+  const {
+    actions: indicatorActions,
+    isLoading: isActionsLoading,
+    error: actionsError,
+  } = useIndicatorActions();
+  const {
+    assets,
+    isLoading: isAssetsLoading,
+    error: assetsError,
+  } = useAssets();
+  const {
+    values: indicatorValues,
+    isLoading: isValuesLoading,
+    error: valuesError,
+  } = useIndicatorValues();
+  const {
+    quantities,
+    isLoading: isQuantitiesLoading,
+    error: quantitiesError,
+  } = useQuantities();
+  const {
+    directions,
+    isLoading: isDirectionsLoading,
+    error: directionsError,
+  } = useDirections();
   const { getBrokerageDetails } = useBrokerageManagement();
   const { data: liveOrders, isLoading: isLiveOrdersLoading } = useLiveOrders();
 
-
   // Combined loading state
-  const isLoading = isMappingsLoading || isIndicatorsLoading || isActionsLoading || 
-                   isAssetsLoading || isValuesLoading || isQuantitiesLoading || isDirectionsLoading;
+  const isLoading =
+    isMappingsLoading ||
+    isIndicatorsLoading ||
+    isActionsLoading ||
+    isAssetsLoading ||
+    isValuesLoading ||
+    isQuantitiesLoading ||
+    isDirectionsLoading;
 
   // Combined error state
-  const error = mappingsError || indicatorsError || actionsError || 
-               assetsError || valuesError || quantitiesError || directionsError;
+  const error =
+    mappingsError ||
+    indicatorsError ||
+    actionsError ||
+    assetsError ||
+    valuesError ||
+    quantitiesError ||
+    directionsError;
 
   // Fetch strategies
-  const { data: strategies, isLoading: isStrategiesLoading, error: strategiesError } = useStrategies();
+  const {
+    data: strategies,
+    isLoading: isStrategiesLoading,
+    error: strategiesError,
+  } = useStrategies();
 
   const navigate = useNavigate();
 
@@ -234,7 +289,9 @@ export default function Dashboard({userId}: { userId?: string }) {
     return (
       <div className="min-h-screen bg-[#F8F8F8] w-full flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-red-600">Error Loading Dashboard</h2>
+          <h2 className="text-xl font-semibold text-red-600">
+            Error Loading Dashboard
+          </h2>
           <p className="text-gray-600 mt-2">Please try refreshing the page</p>
         </div>
       </div>
@@ -250,81 +307,110 @@ export default function Dashboard({userId}: { userId?: string }) {
   // Transform trade mappings into strategy data for the table
   const strategyData = (() => {
     // Debug logging
-    console.log('Trade Mappings:', tradeMappings);
-    console.log('Assets:', assets);
-    console.log('Indicators:', indicators);
-    console.log('Actions:', indicatorActions);
-    console.log('Quantities:', quantities);
-    console.log('Directions:', directions);
-    console.log('Values:', indicatorValues);
+    console.log("Trade Mappings:", tradeMappings);
+    console.log("Assets:", assets);
+    console.log("Indicators:", indicators);
+    console.log("Actions:", indicatorActions);
+    console.log("Quantities:", quantities);
+    console.log("Directions:", directions);
+    console.log("Values:", indicatorValues);
 
     // Ensure tradeMappings is an array
     if (!Array.isArray(tradeMappings)) {
-      console.error('tradeMappings is not an array:', tradeMappings);
+      console.error("tradeMappings is not an array:", tradeMappings);
       return [];
     }
 
-    return tradeMappings.map(mapping => {
-      // Ensure all required data exists
-      if (!mapping) {
-        console.error('Invalid mapping:', mapping);
-        return null;
-      }
+    return tradeMappings
+      .map((mapping) => {
+        // Ensure all required data exists
+        if (!mapping) {
+          console.error("Invalid mapping:", mapping);
+          return null;
+        }
 
-      const asset = Array.isArray(assets) ? assets.find(a => a?.id === mapping.asset_id) : null;
-      const indicator = Array.isArray(indicators) ? indicators.find(i => i?.id === mapping.indicator_id) : null;
-      const action = Array.isArray(indicatorActions) ? indicatorActions.find(a => a?.id === mapping.indicator_action_id) : null;
-      const quantity = Array.isArray(quantities) ? quantities.find(q => q?.id === mapping.quantity_id) : null;
-      const direction = Array.isArray(directions) ? directions.find(d => d?.id === mapping.direction_id) : null;
-      const value = Array.isArray(indicatorValues) ? indicatorValues.find(v => v?.id === mapping.value_id) : null;
+        const asset = Array.isArray(assets)
+          ? assets.find((a) => a?.id === mapping.asset_id)
+          : null;
+        const indicator = Array.isArray(indicators)
+          ? indicators.find((i) => i?.id === mapping.indicator_id)
+          : null;
+        const action = Array.isArray(indicatorActions)
+          ? indicatorActions.find((a) => a?.id === mapping.indicator_action_id)
+          : null;
+        const quantity = Array.isArray(quantities)
+          ? quantities.find((q) => q?.id === mapping.quantity_id)
+          : null;
+        const direction = Array.isArray(directions)
+          ? directions.find((d) => d?.id === mapping.direction_id)
+          : null;
+        const value = Array.isArray(indicatorValues)
+          ? indicatorValues.find((v) => v?.id === mapping.value_id)
+          : null;
 
-      const strategyData = {
-        id: mapping.id,
-        broker: getBrokerageDetails.data?.brokerage_name || 'Not Connected',
-        api: 'REST API',
-        strategy: `${indicator?.name || 'N/A'} ${value?.value || 'N/A'} → ${action?.action || 'N/A'}`,
-        assetSymbol: asset?.symbol || 'N/A',
-        quantity: quantity?.quantity || 0,
-        direction: direction?.direction || 'N/A',
-        runTime: '2 Hrs',
-        availableInvestment: 45600,
-        frozenInvestment: 5600,
-        unrealizedPL: 600,
-        netPL: Math.random() > 0.5 ? -50000 : 50000,
-        tradesExecuted: 300,
-        status: 'Active' as const
-      };
+        const strategyData = {
+          id: mapping.id,
+          broker: getBrokerageDetails.data?.brokerage_name || "Not Connected",
+          api: "REST API",
+          strategy: `${indicator?.name || "N/A"} ${value?.value || "N/A"} → ${
+            action?.action || "N/A"
+          }`,
+          assetSymbol: asset?.symbol || "N/A",
+          quantity: quantity?.quantity || 0,
+          direction: direction?.direction || "N/A",
+          runTime: "2 Hrs",
+          availableInvestment: 45600,
+          frozenInvestment: 5600,
+          unrealizedPL: 600,
+          netPL: Math.random() > 0.5 ? -50000 : 50000,
+          tradesExecuted: 300,
+          status: "Active" as const,
+        };
 
-      return strategyData;
-    }).filter((item): item is NonNullable<typeof item> => item !== null);
+        return strategyData;
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
   })();
-
 
   // Placeholder data for other sections
   const scanners: ScannerData[] = [
-    { name: 'RSI Scanner', dateTime: new Date().toLocaleString(), pairs: 'BTC/USD, ETH/USD', status: 'Active' as const },
-    { name: 'MACD Scanner', dateTime: new Date().toLocaleString(), pairs: 'AAPL, MSFT', status: 'Closed' as const }
+    {
+      name: "RSI Scanner",
+      dateTime: new Date().toLocaleString(),
+      pairs: "BTC/USD, ETH/USD",
+      status: "Active" as const,
+    },
+    {
+      name: "MACD Scanner",
+      dateTime: new Date().toLocaleString(),
+      pairs: "AAPL, MSFT",
+      status: "Closed" as const,
+    },
   ];
 
   const supportTickets: SupportTicketData[] = [
-    { number: 'TST123', createdOn: '12 Aug 2024', status: 'Resolved' as const },
-    { number: 'TST124', createdOn: '13 Aug 2024', status: 'In Progress' as const }
+    { number: "TST123", createdOn: "12 Aug 2024", status: "Resolved" as const },
+    {
+      number: "TST124",
+      createdOn: "13 Aug 2024",
+      status: "In Progress" as const,
+    },
   ];
 
   const plan: PlanData = {
-    name: 'Gold Membership',
-    duration: '24 Months',
-    renewalDate: '12 July 2024'
+    name: "Gold Membership",
+    duration: "24 Months",
+    renewalDate: "12 July 2024",
   };
 
   const toggleSection = (section: string) => {
-    setOpenSections(prev => ({
+    setOpenSections((prev) => ({
       ...prev,
-      [section]: !prev[section as keyof typeof openSections]
-    }))
-  }
+      [section]: !prev[section as keyof typeof openSections],
+    }));
+  };
 
-  console.log('Trade Mappings:', tradeMappings);
+  console.log("Trade Mappings:", tradeMappings);
   console.log("Strategies API response:", strategies);
   console.log("First strategy:", strategies?.data?.[0]);
   return (
@@ -356,33 +442,47 @@ export default function Dashboard({userId}: { userId?: string }) {
         )}
         {/* Summary Section */}
         <div className="grid gap-6">
-          <h2 className="text-lg">Hi {userData?.name || 'User'}, here is your summary</h2>
+          <h2 className="text-lg">
+            Hi {userData?.name || "User"}, here is your summary
+          </h2>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className='w-full'>
+            <div className="w-full">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Card className="bg-[#FFE6E6] border-none">
                   <CardContent className="p-4">
                     <div className="text-sm text-gray-600">Platforms Added</div>
-                    <div className="text-2xl font-bold">{getBrokerageDetails.data ? 1 : 0}</div>
+                    <div className="text-2xl font-bold">
+                      {Array.isArray(getBrokerageDetails.data?.data)
+                        ? getBrokerageDetails.data.data.length
+                        : 0}
+                    </div>
                   </CardContent>
                 </Card>
                 <Card className="bg-[#FFE6E6] border-none">
                   <CardContent className="p-4">
-                    <div className="text-sm text-gray-600">Strategies Active</div>
+                    <div className="text-sm text-gray-600">
+                      Strategies Active
+                    </div>
                     <div className="text-2xl font-bold">{totalStrategies}</div>
                   </CardContent>
                 </Card>
                 <Card className="bg-[#FFE6E6] border-none">
                   <CardContent className="p-4">
                     <div className="text-sm text-gray-600">Trades Executed</div>
-                    <div className="text-2xl font-bold">{totalTradesExecuted}</div>
+                    <div className="text-2xl font-bold">
+                      {totalTradesExecuted}
+                    </div>
                   </CardContent>
                 </Card>
                 <Card className="bg-[#FFE6E6] border-none">
                   <CardContent className="p-4">
                     <div className="text-sm text-gray-600">Net P/L</div>
-                    <div className="text-2xl font-bold text-green-600">${netPL}</div>
-                    <div className="text-sm text-green-600">+{netPLPercentage}%</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      ${netPL}
+                    </div>
+                    <div className="text-sm text-green-600">
+                      +{netPLPercentage}%
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -391,22 +491,28 @@ export default function Dashboard({userId}: { userId?: string }) {
           </div>
 
           <div className="flex items-center gap-4 text-sm">
-            <span>Verified Referrals: <strong>238</strong></span>
-            <span>Pending Referrals: <strong>23</strong></span>
+            <span>
+              Verified Referrals: <strong>238</strong>
+            </span>
+            <span>
+              Pending Referrals: <strong>23</strong>
+            </span>
           </div>
         </div>
 
         {/* Strategy Summary */}
         <Collapsible
           open={openSections.strategy}
-          onOpenChange={() => toggleSection('strategy')}
+          onOpenChange={() => toggleSection("strategy")}
           className="mt-6"
         >
           <Card className="border-0">
             <CardHeader className="bg-[#4A0D0D] text-white rounded-t-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-lg font-medium">Strategy Summary</CardTitle>
+                  <CardTitle className="text-lg font-medium">
+                    Strategy Summary
+                  </CardTitle>
                   <RefreshCcw className="h-4 w-4" />
                 </div>
                 <CollapsibleTrigger>
@@ -444,15 +550,19 @@ export default function Dashboard({userId}: { userId?: string }) {
                             <TableCell>{strategy.direction}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <div className={`h-2 w-2 rounded-full ${
-                                  strategy.status === 'Active' ? 'bg-green-500' : 'bg-red-500'
-                                }`} />
+                                <div
+                                  className={`h-2 w-2 rounded-full ${
+                                    strategy.status === "Active"
+                                      ? "bg-green-500"
+                                      : "bg-red-500"
+                                  }`}
+                                />
                                 {strategy.status}
                               </div>
                             </TableCell>
                             <TableCell>
-                              <Button 
-                                variant="ghost" 
+                              <Button
+                                variant="ghost"
                                 size="sm"
                                 onClick={() => {
                                   if (tradeMappings?.[i]?.id) {
@@ -468,12 +578,18 @@ export default function Dashboard({userId}: { userId?: string }) {
                       </TableBody>
                     </Table>
                     <div className="p-4 flex items-center justify-between text-sm">
-                      <div>{strategyData.length} of {strategyData.length} entries</div>
+                      <div>
+                        {strategyData.length} of {strategyData.length} entries
+                      </div>
                       <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" disabled>
                           Previous
                         </Button>
-                        <Button variant="outline" size="sm" className="bg-[#4A0D0D] text-white">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-[#4A0D0D] text-white"
+                        >
                           1
                         </Button>
                         <Button variant="outline" size="sm">
@@ -493,13 +609,15 @@ export default function Dashboard({userId}: { userId?: string }) {
           <div>
             <Collapsible
               open={openSections.scanner}
-              onOpenChange={() => toggleSection('scanner')}
+              onOpenChange={() => toggleSection("scanner")}
             >
               <Card className="border-0">
                 <CardHeader className="bg-[#4A0D0D] text-white rounded-t-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <CardTitle className="text-lg font-medium">Smart Scanner Summary</CardTitle>
+                      <CardTitle className="text-lg font-medium">
+                        Smart Scanner Summary
+                      </CardTitle>
                       <RefreshCcw className="h-4 w-4" />
                     </div>
                     <CollapsibleTrigger>
@@ -526,9 +644,13 @@ export default function Dashboard({userId}: { userId?: string }) {
                             <TableCell>{scanner.pairs}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <div className={`h-2 w-2 rounded-full ${
-                                  scanner.status === 'Active' ? 'bg-green-500' : 'bg-red-500'
-                                }`} />
+                                <div
+                                  className={`h-2 w-2 rounded-full ${
+                                    scanner.status === "Active"
+                                      ? "bg-green-500"
+                                      : "bg-red-500"
+                                  }`}
+                                />
                                 {scanner.status}
                               </div>
                             </TableCell>
@@ -543,14 +665,16 @@ export default function Dashboard({userId}: { userId?: string }) {
 
             <Collapsible
               open={openSections.plan}
-              onOpenChange={() => toggleSection('plan')}
+              onOpenChange={() => toggleSection("plan")}
               className="mt-6"
             >
               <Card className="border-0">
                 <CardHeader className="bg-[#4A0D0D] text-white rounded-t-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <CardTitle className="text-lg font-medium">Plan Details</CardTitle>
+                      <CardTitle className="text-lg font-medium">
+                        Plan Details
+                      </CardTitle>
                       <RefreshCcw className="h-4 w-4" />
                     </div>
                     <CollapsibleTrigger>
@@ -571,7 +695,9 @@ export default function Dashboard({userId}: { userId?: string }) {
                           <div className="font-medium">{plan.duration}</div>
                         </div>
                         <div>
-                          <div className="text-sm text-gray-500">Next Renewal Date</div>
+                          <div className="text-sm text-gray-500">
+                            Next Renewal Date
+                          </div>
                           <div className="font-medium">{plan.renewalDate}</div>
                         </div>
                       </div>
@@ -579,10 +705,11 @@ export default function Dashboard({userId}: { userId?: string }) {
                         <Button className="bg-[#4A0D0D] hover:bg-[#3A0808] text-white">
                           Upgrade
                         </Button>
-                        <Button variant="outline">
-                          Renew
-                        </Button>
-                        <Button variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-200">
+                        <Button variant="outline">Renew</Button>
+                        <Button
+                          variant="secondary"
+                          className="bg-orange-100 text-orange-700 hover:bg-orange-200"
+                        >
                           Gift Membership
                         </Button>
                       </div>
@@ -594,34 +721,40 @@ export default function Dashboard({userId}: { userId?: string }) {
           </div>
 
           <div className="space-y-6">
-                    <CollapsibleCard
-      title="API Connect"
-      className="col-span-2"
-      action={
-        <Button
-          className="bg-[#FF8C00] text-white hover:bg-[#FFA500] rounded"
-          onClick={e => {
-            e.stopPropagation(); // Prevents toggling the card when clicking the button
-            setShowModal(true);
-          }}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Brokers/Exchanges
-        </Button>
-      }
-    >
-      <ApiConnect userId={userId} showModal={showModal} setShowModal={setShowModal} />
-    </CollapsibleCard>
+            <CollapsibleCard
+              title="API Connect"
+              className="col-span-2"
+              action={
+                <Button
+                  className="bg-[#FF8C00] text-white hover:bg-[#FFA500] rounded"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevents toggling the card when clicking the button
+                    setShowModal(true);
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Brokers/Exchanges
+                </Button>
+              }
+            >
+              <ApiConnect
+                userId={userId}
+                showModal={showModal}
+                setShowModal={setShowModal}
+              />
+            </CollapsibleCard>
             {/* Support Tickets */}
             <Collapsible
               open={openSections.support}
-              onOpenChange={() => toggleSection('support')}
+              onOpenChange={() => toggleSection("support")}
             >
               <Card className="border-0">
                 <CardHeader className="bg-[#4A0D0D] text-white rounded-t-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <CardTitle className="text-lg font-medium">Support Tickets</CardTitle>
+                      <CardTitle className="text-lg font-medium">
+                        Support Tickets
+                      </CardTitle>
                       <RefreshCcw className="h-4 w-4" />
                     </div>
                     <CollapsibleTrigger>
@@ -645,7 +778,13 @@ export default function Dashboard({userId}: { userId?: string }) {
                             <TableCell>{ticket.number}</TableCell>
                             <TableCell>{ticket.createdOn}</TableCell>
                             <TableCell>
-                              <Badge variant={ticket.status === 'Resolved' ? 'default' : 'destructive'}>
+                              <Badge
+                                variant={
+                                  ticket.status === "Resolved"
+                                    ? "default"
+                                    : "destructive"
+                                }
+                              >
                                 {ticket.status}
                               </Badge>
                             </TableCell>
@@ -666,11 +805,12 @@ export default function Dashboard({userId}: { userId?: string }) {
           </div>
         </div>
 
-
         {/* Live Orders Section */}
         <Card className="border bg-white rounded-lg shadow-sm mt-6 mb-6">
           <CardHeader className="bg-[#4A0D0D] text-white rounded-t-lg flex">
-            <CardTitle className="text-lg font-medium">Binance Live Orders</CardTitle>
+            <CardTitle className="text-lg font-medium">
+              Binance Live Orders
+            </CardTitle>
             {/* <RefreshCcw className={`h-4 w-4 ${isLiveOrdersLoading ? 'animate-spin' : ''}`} /> */}
           </CardHeader>
           <CardContent className="p-0">
@@ -703,30 +843,40 @@ export default function Dashboard({userId}: { userId?: string }) {
                     </TableRow>
                   ) : (
                     liveOrders.data.map((order: LiveOrder) => (
-                      <TableRow key={order.orderId} className="hover:bg-muted/50">
+                      <TableRow
+                        key={order.orderId}
+                        className="hover:bg-muted/50"
+                      >
                         <TableCell>{order.symbol}</TableCell>
                         <TableCell>{order.orderId}</TableCell>
                         <TableCell>{order.type}</TableCell>
                         <TableCell>
-                          <Badge variant={order.side === 'BUY' ? "success" : "destructive"}>
+                          <Badge
+                            variant={
+                              order.side === "BUY" ? "success" : "destructive"
+                            }
+                          >
                             {order.side}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {parseFloat(order.price) === 0 
-                            ? 'MARKET' 
-                            : parseFloat(order.price).toFixed(2)
-                          }
+                          {parseFloat(order.price) === 0
+                            ? "MARKET"
+                            : parseFloat(order.price).toFixed(2)}
                         </TableCell>
-                        <TableCell>{parseFloat(order.origQty).toFixed(8)}</TableCell>
                         <TableCell>
-                          <Badge variant={
-                            order.status === 'FILLED' 
-                              ? "success" 
-                              : order.status === 'CANCELED' 
-                                ? "destructive" 
+                          {parseFloat(order.origQty).toFixed(8)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              order.status === "FILLED"
+                                ? "success"
+                                : order.status === "CANCELED"
+                                ? "destructive"
                                 : "warning"
-                          }>
+                            }
+                          >
                             {order.status}
                           </Badge>
                         </TableCell>
@@ -741,27 +891,29 @@ export default function Dashboard({userId}: { userId?: string }) {
             </div>
           </CardContent>
         </Card>
-      {/* Create Strategy Button above the Strategy Table */}
+        {/* Create Strategy Button above the Strategy Table */}
         {/* Strategy Table Section */}
-       <Card className="border bg-white rounded-lg shadow-sm mt-0">
+        <Card className="border bg-white rounded-lg shadow-sm mt-0">
           <CardHeader className="bg-[#4A0D0D] text-white rounded-t-lg">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-medium">Strategy Table</CardTitle>
+              <CardTitle className="text-lg font-medium">
+                Strategy Table
+              </CardTitle>
               <Button
                 className="bg-[#FF8C00] text-white hover:bg-[#FFA500]"
                 onClick={() => navigate("/strategy-builder")}
               >
-            Create Strategy
-          </Button>
-        </div>
+                Create Strategy
+              </Button>
+            </div>
             {/* <CardTitle className="text-lg font-medium">Strategy Table</CardTitle> */}
           </CardHeader>
           <CardContent className="p-0">
             {isStrategiesLoading ? (
               <div className="flex justify-center items-center h-64">
-                 <TableCell colSpan={8} className="text-center py-4">
-                        Loading Strategies please wait...
-                      </TableCell>
+                <TableCell colSpan={8} className="text-center py-4">
+                  Loading Strategies please wait...
+                </TableCell>
               </div>
             ) : strategiesError ? (
               <div className="flex justify-center items-center h-64 text-red-600">
@@ -779,12 +931,23 @@ export default function Dashboard({userId}: { userId?: string }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {Array.isArray(strategies?.data) && strategies.data.length > 0 ? (
+                  {Array.isArray(strategies?.data) &&
+                  strategies.data.length > 0 ? (
                     strategies.data.map((strategy: any) => (
                       <TableRow key={strategy.id}>
-                        <TableCell>{strategy.name || strategy.strategy_name || "-"}</TableCell>
-                        <TableCell>{strategy.created_at ? new Date(strategy.created_at).toLocaleString() : "-"}</TableCell>
-                        <TableCell>{strategy.updated_at ? new Date(strategy.updated_at).toLocaleString() : "-"}</TableCell>
+                        <TableCell>
+                          {strategy.name || strategy.strategy_name || "-"}
+                        </TableCell>
+                        <TableCell>
+                          {strategy.created_at
+                            ? new Date(strategy.created_at).toLocaleString()
+                            : "-"}
+                        </TableCell>
+                        <TableCell>
+                          {strategy.updated_at
+                            ? new Date(strategy.updated_at).toLocaleString()
+                            : "-"}
+                        </TableCell>
                         <TableCell>{strategy.status || "-"}</TableCell>
                         <TableCell>
                           <Button variant="ghost" size="sm">
@@ -795,7 +958,9 @@ export default function Dashboard({userId}: { userId?: string }) {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center">No strategies found.</TableCell>
+                      <TableCell colSpan={5} className="text-center">
+                        No strategies found.
+                      </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -804,9 +969,9 @@ export default function Dashboard({userId}: { userId?: string }) {
           </CardContent>
         </Card>
         <div className="mt-6">
-        <BrokeragesTable />
-      </div>
+          <BrokeragesTable />
+        </div>
       </main>
     </div>
-  )
+  );
 }
