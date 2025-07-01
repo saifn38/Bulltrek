@@ -25,6 +25,12 @@ const Header: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="/trade">Trade</SelectItem>
+                  <SelectItem value="/indie-lesi">Indy Lesi</SelectItem>
+                  <SelectItem value="/indie-trend">Indy Trend</SelectItem>
+                  <SelectItem value="/growth-dca">Growth Dca</SelectItem>
+                  <SelectItem value="/price-action">Price Action</SelectItem>
+                  <SelectItem value="/human-grid">Human Grid</SelectItem>
+                  <SelectItem value="/smart-grid">Smart Grid</SelectItem>
                 </SelectContent>
               </Select>
               <Select onValueChange={(value) => handleSelectChange(value)}>
@@ -48,12 +54,7 @@ const Header: React.FC = () => {
                   <SelectItem value="/diverse-follow">Diverse Follow</SelectItem>
                   <SelectItem value="/smart-copy">Smart Copy</SelectItem>
                   <SelectItem value="/traders-comparison">Traders Comparison</SelectItem>
-                  <SelectItem value="/indie-lesi">Indy Lesi</SelectItem>
-                  <SelectItem value="/indie-trend">Indy Trend</SelectItem>
-                  <SelectItem value="/growth-dca">Growth Dca</SelectItem>
-                  <SelectItem value="/price-action">Price Action</SelectItem>
-                  <SelectItem value="/human-grid">Human Grid</SelectItem>
-                  <SelectItem value="/smart-grid">Smart Grid</SelectItem>
+                  
                 </SelectContent>
               </Select>
               <Select onValueChange={(value) => handleSelectChange(value)}>
