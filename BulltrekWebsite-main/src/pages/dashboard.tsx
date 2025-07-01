@@ -724,6 +724,7 @@ export default function Dashboard({ userId }: { userId?: string }) {
             <CollapsibleCard
               title="API Connect"
               className="col-span-2"
+              contentClassName="p-0"
               action={
                 <Button
                   className="bg-[#FF8C00] text-white hover:bg-[#FFA500] rounded"

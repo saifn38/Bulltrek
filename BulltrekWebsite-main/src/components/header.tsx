@@ -26,7 +26,7 @@ const Header: React.FC = () => {
             <nav className="flex items-center gap-6">
               <Link to="/dashboard">Dashboard</Link>
               <Select onValueChange={(value) => handleSelectChange(value)}>
-                <SelectTrigger className="w-[100px] border-none">
+                <SelectTrigger className="min-w-[100px] truncate border-none">
                   <SelectValue placeholder="Trade" />
                 </SelectTrigger>
                 <SelectContent>
@@ -40,7 +40,7 @@ const Header: React.FC = () => {
                 </SelectContent>
               </Select>
               <Select onValueChange={(value) => handleSelectChange(value)}>
-                <SelectTrigger className="w-[100px] border-none">
+                <SelectTrigger className="min-w-[100px] border-none">
                   <SelectValue placeholder="Analysis" />
                 </SelectTrigger>
                 <SelectContent>
@@ -48,7 +48,7 @@ const Header: React.FC = () => {
                 </SelectContent>
               </Select>
               <Select onValueChange={(value) => handleSelectChange(value)}>
-                <SelectTrigger className="w-[120px] border-none">
+                <SelectTrigger className="w-[130px] border-none">
                   <SelectValue placeholder="Copy Trade" />
                 </SelectTrigger>
                 <SelectContent>
@@ -69,7 +69,7 @@ const Header: React.FC = () => {
                 </SelectContent>
               </Select>
               <Select onValueChange={(value) => handleSelectChange(value)}>
-                <SelectTrigger className="w-[130px] border-none">
+                <SelectTrigger className="min-w-[130px] border-none">
                   <SelectValue placeholder="Market Place" />
                 </SelectTrigger>
                 <SelectContent>
