@@ -201,9 +201,8 @@ export default function TradePage() {
                         </SelectItem>
                       ) : (
                         brokerages.map((b) => (
-                          <SelectItem key={b.id} value={b.brokerage_name}>
-                            {b.brokerage_name.charAt(0).toUpperCase() +
-                              b.brokerage_name.slice(1)}
+                          <SelectItem key={b.id} value={b.id.toString()}>
+                            {b.brokerage_name}
                           </SelectItem>
                         ))
                       )}
