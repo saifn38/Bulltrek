@@ -12,7 +12,7 @@ import { useUserProfile } from '@/hooks/useUserProfile'
 import { useUpdatePassword } from '@/hooks/useUpdatePassword'
 import { useBrokerageDetails } from '@/hooks/useBrokerageDetails'
 import { useBotManagement } from '@/hooks/useBotManagement'
-import { Clock, Download, Edit, Plus, Trash2, RefreshCcw } from 'lucide-react'
+import { Clock, Download, Edit, Plus, Trash2, RefreshCw } from 'lucide-react'
 import { useResendInvite } from '@/hooks/sendinvite';
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
@@ -443,7 +443,7 @@ const handleConfirmDelete = async () => {
                         toast.success("Details updated successfully");
                       }}
                     >
-                      <RefreshCcw className="h-4 w-4" />
+                      <RefreshCw className="h-4 w-4" />
                       Update Details
                     </Button>
 

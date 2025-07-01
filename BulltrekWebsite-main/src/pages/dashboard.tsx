@@ -29,16 +29,15 @@ import {
   ChevronDown,
   MessageSquare,
   MoreVertical,
-  RefreshCcw,
-  Clock,
+  RefreshCw,
   Plus,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import apiClient from "@/api/apiClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { CollapsibleCard } from "@/components/collapsible-card";
 // import StrategyBuilder from '@/components/strategy/StrategyBuilder'
 import { BrokeragesTable } from "../components/Brokerages/BrokeragesTable";
@@ -272,12 +271,16 @@ export default function Dashboard({ userId }: { userId?: string }) {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    toast.dismiss();
+  }, [isLoading]);
+
   // Show loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F8F8F8] w-full flex items-center justify-center">
         <div className="text-center">
-          <RefreshCcw className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Loading dashboard data...</p>
         </div>
       </div>
@@ -513,7 +516,7 @@ export default function Dashboard({ userId }: { userId?: string }) {
                   <CardTitle className="text-lg font-medium">
                     Strategy Summary
                   </CardTitle>
-                  <RefreshCcw className="h-4 w-4" />
+                  <RefreshCw className="h-4 w-4" />
                 </div>
                 <CollapsibleTrigger>
                   <ChevronDown className="h-4 w-4" />
@@ -524,7 +527,7 @@ export default function Dashboard({ userId }: { userId?: string }) {
               <CardContent className="p-0">
                 {isLoading ? (
                   <div className="flex justify-center items-center h-64">
-                    <RefreshCcw className="h-8 w-8 animate-spin" />
+                    <RefreshCw className="h-8 w-8 animate-spin" />
                   </div>
                 ) : (
                   <>
@@ -618,7 +621,7 @@ export default function Dashboard({ userId }: { userId?: string }) {
                       <CardTitle className="text-lg font-medium">
                         Smart Scanner Summary
                       </CardTitle>
-                      <RefreshCcw className="h-4 w-4" />
+                      <RefreshCw className="h-4 w-4" />
                     </div>
                     <CollapsibleTrigger>
                       <ChevronDown className="h-4 w-4" />
@@ -675,7 +678,7 @@ export default function Dashboard({ userId }: { userId?: string }) {
                       <CardTitle className="text-lg font-medium">
                         Plan Details
                       </CardTitle>
-                      <RefreshCcw className="h-4 w-4" />
+                      <RefreshCw className="h-4 w-4" />
                     </div>
                     <CollapsibleTrigger>
                       <ChevronDown className="h-4 w-4" />
@@ -756,7 +759,7 @@ export default function Dashboard({ userId }: { userId?: string }) {
                       <CardTitle className="text-lg font-medium">
                         Support Tickets
                       </CardTitle>
-                      <RefreshCcw className="h-4 w-4" />
+                      <RefreshCw className="h-4 w-4" />
                     </div>
                     <CollapsibleTrigger>
                       <ChevronDown className="h-4 w-4" />
@@ -812,7 +815,7 @@ export default function Dashboard({ userId }: { userId?: string }) {
             <CardTitle className="text-lg font-medium">
               Binance Live Orders
             </CardTitle>
-            {/* <RefreshCcw className={`h-4 w-4 ${isLiveOrdersLoading ? 'animate-spin' : ''}`} /> */}
+            {/* <RefreshCw className={`h-4 w-4 ${isLiveOrdersLoading ? 'animate-spin' : ''}`} /> */}
           </CardHeader>
           <CardContent className="p-0">
             <div className="max-h-[400px] overflow-y-auto">

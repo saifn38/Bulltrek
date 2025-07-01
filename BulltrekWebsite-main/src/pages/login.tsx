@@ -34,6 +34,7 @@ const LoginPage = () => {
         email: values.email,
         password: values.password
       })
+      toast.success("Login Successfull, Please wait while we prepare your dashboard")
       if (values.rememberMe) {
         // Implement remember me logic if needed
       }
