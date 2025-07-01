@@ -1,15 +1,21 @@
-import React from 'react'
-import { Button } from './ui/button'
-import { Bell, HelpCircle } from 'lucide-react'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Link, useNavigate } from 'react-router-dom'
+import React from "react";
+import { Button } from "./ui/button";
+import { Bell, HelpCircle } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Link, useNavigate } from "react-router-dom";
 
 const Header: React.FC = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleSelectChange = (path: string) => {
-    navigate(path)
-  }
+    navigate(path);
+  };
 
   return (
     <header className="border-b bg-white w-full">
@@ -41,20 +47,25 @@ const Header: React.FC = () => {
                   <SelectItem value="/trading-report">Reports</SelectItem>
                 </SelectContent>
               </Select>
-              <Select onValueChange={(value) => handleSelectChange(value, )}>
+              <Select onValueChange={(value) => handleSelectChange(value)}>
                 <SelectTrigger className="w-[120px] border-none">
-                  <SelectValue placeholder="Copy Trade"  />
+                  <SelectValue placeholder="Copy Trade" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="/copy-trade">Copy Trade</SelectItem>
                   <SelectItem value="/copy-trade-1">Copy Trade 1</SelectItem>
                   <SelectItem value="/copy-trade-2">Copy Trade 2</SelectItem>
                   <SelectItem value="/copy-trade-3">Copy Trade 3</SelectItem>
-                  <SelectItem value="/trader-overview">Trader Overview</SelectItem>
-                  <SelectItem value="/diverse-follow">Diverse Follow</SelectItem>
+                  <SelectItem value="/trader-overview">
+                    Trader Overview
+                  </SelectItem>
+                  <SelectItem value="/diverse-follow">
+                    Diverse Follow
+                  </SelectItem>
                   <SelectItem value="/smart-copy">Smart Copy</SelectItem>
-                  <SelectItem value="/traders-comparison">Traders Comparison</SelectItem>
-                  
+                  <SelectItem value="/traders-comparison">
+                    Traders Comparison
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <Select onValueChange={(value) => handleSelectChange(value)}>
@@ -71,16 +82,27 @@ const Header: React.FC = () => {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/notifications')}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/notifications")}
+            >
               <Bell className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate('/help')}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/help")}
+            >
               <HelpCircle className="h-5 w-5" />
             </Button>
-            <div className="h-8 w-8 rounded-full bg-gray-200" onClick={() => navigate('/account ')} />
-            <Button 
+            <div
+              className="h-8 w-8 rounded-full bg-gray-200"
+              onClick={() => navigate("/account ")}
+            />
+            <Button
               className="bg-[#4A0D0D] text-white rounded-2xl hover:bg-[#3A0808]"
-              onClick={() => navigate('/tutorial')}
+              onClick={() => navigate("/tutorial")}
             >
               Tutorial
             </Button>
@@ -88,8 +110,7 @@ const Header: React.FC = () => {
         </div>
       </div>
     </header>
-  )
-}
+  );
+};
 
-export default Header
-
+export default Header;

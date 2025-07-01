@@ -34,6 +34,29 @@ export interface BrokerageMaster {
   color_code: string;
 }
 
+export interface BrokerageConnection {
+  id: number;
+  brokerage_name: string;
+  brokerage_api_key: string;
+  brokerage_api_secret: string;
+  brokerage_id: number;
+  created_at: string;
+  updated_at: string;
+  brokerage: {
+    id: number;
+    name: string;
+    website: string | null;
+    registration_link: string | null;
+    description: string | null;
+    icon: string | null;
+    color_code: string | null;
+    brokerage_type: string | null;
+    api_base_url: string | null;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
 //  Brokerage Master APIs 
 export const brokerageMaster = {
   getAll: (): Promise<AxiosResponse<BrokerageMaster[]>> => 
