@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
-import { RefreshCcw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import apiClient from "@/api/apiClient";
@@ -104,7 +104,7 @@ export function ApiConnect({ userId }: ApiConnectProps) {
           disabled={isConnecting || brokerageState?.binance}
         >
           {isConnecting ? (
-            <RefreshCcw className="h-4 w-4 animate-spin mr-2" />
+            <RefreshCw className="h-4 w-4 animate-spin mr-2" />
           ) : null}
           {brokerageState?.binance ? "Connected" : "Connect"}
         </Button>
