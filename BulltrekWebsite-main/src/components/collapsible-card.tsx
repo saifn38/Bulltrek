@@ -10,7 +10,8 @@ interface CollapsibleCardProps {
   children: React.ReactNode
   className?: string
   defaultExpanded?: boolean
-  action?: React.ReactNode // <-- Added
+  action?: React.ReactNode
+  contentClassName?: string
 }
 
 export function CollapsibleCard({ 
@@ -18,7 +19,8 @@ export function CollapsibleCard({
   children, 
   className,
   defaultExpanded = true,
-  action // <-- Added
+  action,
+  contentClassName
 }: CollapsibleCardProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
 
@@ -44,7 +46,7 @@ export function CollapsibleCard({
         "transition-all duration-200 ease-in-out",
         isExpanded ? "opacity-100" : "opacity-0 h-0 overflow-hidden"
       )}>
-        <CardContent className="p-6">
+        <CardContent className={contentClassName ?? "p-6"}>
           {children}
         </CardContent>
       </div>
